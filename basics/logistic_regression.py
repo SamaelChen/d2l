@@ -1,5 +1,5 @@
 # %%
-from numpy import True_
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -55,9 +55,13 @@ loss = nn.CrossEntropyLoss()
 net = LogisticRegression()
 optimizer = torch.optim.SGD(net.parameters(), lr=0.1)
 epochs = 10
+acc_train_list, acc_test_list = [], []
 # %%
 for epoch in range(epochs):
-    for X, y in tqdm(train_iter):
+    total_acc = 0
+    steps = 0
+    net.train()
+    for X, y in train_iter:
         y_hat = net(X)
         y_pred = torch.argmax(y_hat, dim=1).tolist()
         l = loss(y_hat, y)
@@ -65,3 +69,59 @@ for epoch in range(epochs):
         l.backward()
         optimizer.step()
         acc = accuracy_score(y_pred=y_pred, y_true=y.tolist())
+        total_acc += acc
+        steps += 1
+    acc_train_list.append(total_acc/steps)
+    total_acc, steps = 0, 0
+    net.eval()
+    for X, y in test_iter:
+        y_hat = net(X)
+        y_pred = torch.argmax(y_hat, dim=1).tolist()
+        acc = accuracy_score(y_pred=y_pred, y_true=y.tolist())
+        total_acc += acc
+        steps += 1
+    acc_test_list.append(total_acc/steps)
+    print('epoch %d, train acc %.4f, test acc %.4f' %
+          (epoch+1, acc_train_list[-1], acc_test_list[-1]))
+
+
+# %%
+plt.figure(figsize=(16, 9))
+plt.plot(np.arange(1, epochs+1), acc_train_list)
+plt.plot(np.arange(1, epochs+1), acc_test_list)
+plt.legend(['train', 'test'])
+plt.show()
+
+# %%
+label2cate = {0: 'T-shirt/top',
+              1: 'Trouser',
+              2: 'Pullover',
+              3: 'Dress',
+              4: 'Coat',
+              5: 'Sandal',
+              6: 'Shirt',
+              7: 'Sneaker',
+              8: 'Bag',
+              9: 'Ankle boot'}
+
+
+def predict(net, test_iter, n=25):
+    for X, y in test_iter:
+        break
+    y_pred = net(X).argmax(dim=1)
+    trues = [label2cate[x] for x in y.detach().tolist()]
+    preds = [label2cate[x] for x in y_pred.detach().tolist()]
+    titles = [true + '\n' + pred for true, pred in zip(trues, preds)]
+    nrows, ncols = 5, 5
+    figure, axis = plt.subplots(
+        nrows, ncols, figsize=(16, 16), gridspec_kw={'wspace': 0.2, 'hspace': 0.5})
+    for i in range(nrows):
+        for j in range(ncols):
+            axis[i, j].imshow(X[i*5+j].numpy().reshape(28, 28))
+            axis[i, j].set_title(titles[i*5+j])
+    plt.show()
+
+
+# %%
+predict(net, test_iter)
+# %%
