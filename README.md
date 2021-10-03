@@ -1,2 +1,2 @@
 # d2l
-深度学习PyTorch各种复现学习
+李沐动手学深度学习一些PyTorch复现学习，用vscode运行即可。
