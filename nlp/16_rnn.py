@@ -22,10 +22,11 @@ import os
 import re
 import random
 from d2l import torch as d2l
+from utils import load_data_time_machine
 # %%
 batch_size = 32
 num_steps = 35
-train_iter, vocab = d2l.load_data_time_machine(batch_size, num_steps)
+train_iter, vocab = load_data_time_machine(batch_size, num_steps)
 # %%
 num_hiddens = 256
 rnn_layer = nn.RNN(len(vocab), num_hiddens)
