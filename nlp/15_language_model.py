@@ -81,7 +81,17 @@ class Vocab:
         return collections.Counter(tokens)
 
 
+def load_corpus_time_machine(token_type='word', max_tokens=-1):
+    lines = read_time_machine()
+    tokens = tokenize(lines, token_type)
+    vocab = Vocab(tokens)
+    corpus = [vocab[token] for line in tokens for token in line]
+    if max_tokens > 0:
+        corpus = corpus[:max_tokens]
+    return corpus, vocab
 # %%
+
+
 def seq_data_iter_random(corpus, batch_size, num_steps):
     corpus = corpus[random.randint(0, num_steps-1):]
     num_subseqs = (len(corpus) - 1) // num_steps
@@ -96,6 +106,34 @@ def seq_data_iter_random(corpus, batch_size, num_steps):
         X = [data(j) for j in initial_indices_per_batch]
         Y = [data(j+1) for j in initial_indices_per_batch]
         yield torch.tensor(X), torch.tensor(Y)
+
+
+def seq_data_iter_sequential(corpus, batch_size, num_steps):
+    offset = random.randint(0, num_steps)
+    num_tokens = ((len(corpus) - offset - 1) // batch_size) * batch_size
+    Xs = torch.tensor(corpus[offset: offset+num_tokens])
+    Ys = torch.tensor(corpus[offset+1: offset+1+num_tokens])
+    Xs, Ys = Xs.reshape(batch_size, -1), Ys.reshape(batch_size, -1)
+    num_batches = Xs.shape[1] // num_steps
+    for i in range(0, num_steps * num_batches, num_steps):
+        X = Xs[:, i:i+num_steps]
+        Y = Ys[:, i:i+num_steps]
+        yield X, Y
+
+
+class SeqDataLoader:
+    def __init__(self, batch_size, num_steps, use_random_iter, token_type, max_tokens) -> None:
+        if use_random_iter:
+            self.data_iter_fn = seq_data_iter_random
+        else:
+            self.data_iter_fn = seq_data_iter_sequential
+        self.corpus, self.vocab = load_corpus_time_machine(
+            token_type, max_tokens)
+        self.batch_size = batch_size
+        self.num_steps = num_steps
+
+    def __iter__(self):
+        return self.data_iter_fn(self.corpus, self.batch_size, self.num_steps)
 
 
 # %%
@@ -118,4 +156,34 @@ trigram_tokens = [triple for triple in zip(
     corpus[:-2], corpus[1:-1], corpus[2:])]
 trigram_vocab = Vocab(trigram_tokens)
 trigram_vocab.token_freqs[:10]
+# %%
+my_seq = list(range(35))
+for X, Y in seq_data_iter_random(my_seq, batch_size=2, num_steps=5):
+    print('X: ', X, '\nY: ', Y)
+
+# %%
+for X, Y in seq_data_iter_sequential(my_seq, batch_size=2, num_steps=5):
+    print('X: ', X, '\nY: ', Y)
+# %%
+
+
+def load_data_time_machine(batch_size, num_steps, use_random_iter=False,
+                           token_type='word', max_tokens=10000):
+    data_iter = SeqDataLoader(batch_size, num_steps,
+                              use_random_iter, token_type, max_tokens)
+    return data_iter, data_iter.vocab
+
+
+# %%
+data_iter, vocab = load_data_time_machine(4, 5)
+# %%
+vocab.token_freqs[:10]
+# %%
+for X, Y in data_iter:
+    print('X: ', X, '\nY: ', Y)
+    break
+# %%
+corpus[:10]
+# %%
+
 # %%
