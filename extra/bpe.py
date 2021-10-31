@@ -123,7 +123,7 @@ for i in range(num_merges):
     print('==========')
 
 # %%
-vocab = get_vocab('../data/pg16457.txt')
+vocab = get_vocab('../data/太乙.txt')
 
 print('==========')
 print('Tokens Before BPE')
@@ -132,19 +132,20 @@ print('All tokens: {}'.format(tokens_frequencies.keys()))
 print('Number of tokens: {}'.format(len(tokens_frequencies.keys())))
 print('==========')
 
-num_merges = 1000
+num_merges = 10000
 for i in range(num_merges):
     pairs = get_stats(vocab)
     if not pairs:
         break
     best = max(pairs, key=pairs.get)
     vocab = merge_vocab(best, vocab)
-    print('Iter: {}'.format(i))
-    print('Best pair: {}'.format(best))
-    tokens_frequencies, vocab_tokenization = get_tokens_from_vocab(vocab)
-    print('All tokens: {}'.format(tokens_frequencies.keys()))
-    print('Number of tokens: {}'.format(len(tokens_frequencies.keys())))
-    print('==========')
+    if (i+1) % 100 == 0:
+        print('Iter: {}'.format(i+1))
+        print('Best pair: {}'.format(best))
+        tokens_frequencies, vocab_tokenization = get_tokens_from_vocab(vocab)
+        print('All tokens: {}'.format(tokens_frequencies.keys()))
+        print('Number of tokens: {}'.format(len(tokens_frequencies.keys())))
+        print('==========')
 
 # Let's check how tokenization will be for a known word
 word_given_known = 'mountains</w>'
