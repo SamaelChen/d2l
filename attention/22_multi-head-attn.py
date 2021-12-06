@@ -75,11 +75,11 @@ class MultiHeadAttention(nn.Module):
                  num_heads, dropout, bias=False, **kwargs):
         super(MultiHeadAttention, self).__init__(**kwargs)
         self.num_heads = num_heads
-        self.attention = d2l.DotProductAttention(dropout)
-        self.W_q = nn.Linear(query_size, num_hiddens, bias=bias)
-        self.W_k = nn.Linear(key_size, num_hiddens, bias=bias)
-        self.W_v = nn.Linear(value_size, num_hiddens, bias=bias)
-        self.W_o = nn.Linear(num_hiddens, num_hiddens, bias=bias)
+        self.attention = DotProductAttention(dropout)
+        self.W_q = nn.Linear(query_size, num_hiddens*num_heads, bias=bias)
+        self.W_k = nn.Linear(key_size, num_hiddens*num_heads, bias=bias)
+        self.W_v = nn.Linear(value_size, num_hiddens*num_heads, bias=bias)
+        self.W_o = nn.Linear(num_hiddens*num_heads, num_hiddens, bias=bias)
 
     def forward(self, queries, keys, values, valid_lens):
         # `queries`, `keys`, or `values` 的形状:
@@ -140,7 +140,7 @@ class Seq2SeqAttnDecoder(nn.Module):
         # self.attention = DotProductAttention(dropout=0.5)
         self.attention = MultiHeadAttention(num_hiddens, num_hiddens,
                                             num_hiddens, num_hiddens,
-                                            num_heads=5, dropout=0.5)
+                                            num_heads=4, dropout=0.5)
         self.embedding = nn.Embedding(vocab_size, embed_size)
         self.rnn = nn.GRU(embed_size + num_hiddens,
                           num_hiddens, num_layers, dropout=dropout)
@@ -169,7 +169,8 @@ class Seq2SeqAttnDecoder(nn.Module):
             # 将 `x` 变形为 (1, `batch_size`, `embed_size` + `num_hiddens`)
             out, hidden_state = self.rnn(x.permute(1, 0, 2), hidden_state)
             outputs.append(out)
-            self._attention_weights.append(self.attention.attention_weights)
+            self._attention_weights.append(
+                self.attention.attention.attention_weights)
         # 全连接层变换后， `outputs`的形状为
         # (`num_steps`, `batch_size`, `vocab_size`)
         outputs = self.dense(torch.cat(outputs, dim=0))
@@ -205,8 +206,10 @@ net = d2l.EncoderDecoder(encoder, decoder)
 d2l.train_seq2seq(net, train_iter, lr, num_epochs, tgt_vocab, device)
 
 # %%
-engs = ['go .', "i lost .", 'he\'s calm .', 'i\'m home .']
-fras = ['va !', 'j\'ai perdu .', 'il est calme .', 'je suis chez moi .']
+engs = ['go .', "i lost .", 'he\'s calm .',
+        'i\'m home .', 'i don\'t think i can do it .']
+fras = ['va !', 'j\'ai perdu .', 'il est calme .',
+        'je suis chez moi .', 'je ne pense pas pouvoir le faire .']
 for eng, fra in zip(engs, fras):
     translation, dec_attention_weight_seq = d2l.predict_seq2seq(
         net, eng, src_vocab, tgt_vocab, num_steps, device, True)
@@ -219,7 +222,7 @@ attention_weights = torch.cat(
 
 # %%
 d2l.show_heatmaps(
-    attention_weights[:, :, :, :len(engs[-1].split()) + 1].cpu(),
+    attention_weights[:, :, :, :len(engs[-2].split()) + 1].cpu(),
     xlabel='Key posistions', ylabel='Query posistions')
 
 # %%
