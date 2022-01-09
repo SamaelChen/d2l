@@ -19,8 +19,7 @@ def masked_softmax(X, valid_lens):
         else:
             valid_lens = valid_lens.reshape(-1)
         # 在最后的轴上，被遮蔽的元素使用一个非常大的负值替换，从而其 softmax (指数)输出为 0
-        X = d2l.sequence_mask(X.reshape(-1, shape[-1]), valid_lens,
-                              value=-1e6)
+        X = d2l.sequence_mask(X.reshape(-1, shape[-1]), valid_lens, value=-1e6)
         return nn.functional.softmax(X.reshape(shape), dim=-1)
 
 
@@ -71,15 +70,24 @@ class DotProductAttention(nn.Module):
 
 # %%
 class MultiHeadAttention(nn.Module):
-    def __init__(self, key_size, query_size, value_size, num_hiddens,
-                 num_heads, dropout, bias=False, **kwargs):
+    def __init__(
+        self,
+        key_size,
+        query_size,
+        value_size,
+        num_hiddens,
+        num_heads,
+        dropout,
+        bias=False,
+        **kwargs,
+    ):
         super(MultiHeadAttention, self).__init__(**kwargs)
         self.num_heads = num_heads
         self.attention = DotProductAttention(dropout)
-        self.W_q = nn.Linear(query_size, num_hiddens*num_heads, bias=bias)
-        self.W_k = nn.Linear(key_size, num_hiddens*num_heads, bias=bias)
-        self.W_v = nn.Linear(value_size, num_hiddens*num_heads, bias=bias)
-        self.W_o = nn.Linear(num_hiddens*num_heads, num_hiddens, bias=bias)
+        self.W_q = nn.Linear(query_size, num_hiddens * num_heads, bias=bias)
+        self.W_k = nn.Linear(key_size, num_hiddens * num_heads, bias=bias)
+        self.W_v = nn.Linear(value_size, num_hiddens * num_heads, bias=bias)
+        self.W_o = nn.Linear(num_hiddens * num_heads, num_hiddens, bias=bias)
 
     def forward(self, queries, keys, values, valid_lens):
         # `queries`, `keys`, or `values` 的形状:
@@ -97,7 +105,8 @@ class MultiHeadAttention(nn.Module):
             # 在轴 0，将第一项（标量或者矢量）复制 `num_heads` 次，
             # 然后如此复制第二项，然后诸如此类。
             valid_lens = torch.repeat_interleave(
-                valid_lens, repeats=self.num_heads, dim=0)
+                valid_lens, repeats=self.num_heads, dim=0
+            )
 
         # `output` 的形状: (`batch_size` * `num_heads`, 查询的个数,
         # `num_hiddens` / `num_heads`)
@@ -129,21 +138,26 @@ def transpose_output(X, num_heads):
     X = X.reshape(-1, num_heads, X.shape[1], X.shape[2])
     X = X.permute(0, 2, 1, 3)
     return X.reshape(X.shape[0], X.shape[1], -1)
+
+
 # %%
 
 
 class Seq2SeqAttnDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size, num_hiddens, num_layers, dropout=0, **kwargs) -> None:
+    def __init__(
+        self, vocab_size, embed_size, num_hiddens, num_layers, dropout=0, **kwargs
+    ) -> None:
         super(Seq2SeqAttnDecoder, self).__init__(**kwargs)
         # self.attention = AdditiveAttention(
         #     num_hiddens, num_hiddens, num_hiddens, dropout)
         # self.attention = DotProductAttention(dropout=0.5)
-        self.attention = MultiHeadAttention(num_hiddens, num_hiddens,
-                                            num_hiddens, num_hiddens,
-                                            num_heads=4, dropout=0.5)
+        self.attention = MultiHeadAttention(
+            num_hiddens, num_hiddens, num_hiddens, num_hiddens, num_heads=4, dropout=0.5
+        )
         self.embedding = nn.Embedding(vocab_size, embed_size)
-        self.rnn = nn.GRU(embed_size + num_hiddens,
-                          num_hiddens, num_layers, dropout=dropout)
+        self.rnn = nn.GRU(
+            embed_size + num_hiddens, num_hiddens, num_layers, dropout=dropout
+        )
         self.dense = nn.Linear(num_hiddens, vocab_size)
 
     def init_state(self, enc_outputs, enc_valid_lens, *args):
@@ -162,20 +176,17 @@ class Seq2SeqAttnDecoder(nn.Module):
             # `query`的形状为 (`batch_size`, 1, `num_hiddens`)
             query = torch.unsqueeze(hidden_state[-1], dim=1)
             # `context`的形状为 (`batch_size`, 1, `num_hiddens`)
-            context = self.attention(
-                query, enc_outputs, enc_outputs, enc_valid_lens)
+            context = self.attention(query, enc_outputs, enc_outputs, enc_valid_lens)
             # 在特征维度上连结
             x = torch.cat((context, torch.unsqueeze(x, dim=1)), dim=-1)
             # 将 `x` 变形为 (1, `batch_size`, `embed_size` + `num_hiddens`)
             out, hidden_state = self.rnn(x.permute(1, 0, 2), hidden_state)
             outputs.append(out)
-            self._attention_weights.append(
-                self.attention.attention.attention_weights)
+            self._attention_weights.append(self.attention.attention.attention_weights)
         # 全连接层变换后， `outputs`的形状为
         # (`num_steps`, `batch_size`, `vocab_size`)
         outputs = self.dense(torch.cat(outputs, dim=0))
-        return outputs.permute(1, 0, 2), [enc_outputs, hidden_state,
-                                          enc_valid_lens]
+        return outputs.permute(1, 0, 2), [enc_outputs, hidden_state, enc_valid_lens]
 
     @property
     def attention_weights(self):
@@ -183,11 +194,9 @@ class Seq2SeqAttnDecoder(nn.Module):
 
 
 # %%
-encoder = d2l.Seq2SeqEncoder(vocab_size=10, embed_size=8, num_hiddens=16,
-                             num_layers=2)
+encoder = d2l.Seq2SeqEncoder(vocab_size=10, embed_size=8, num_hiddens=16, num_layers=2)
 encoder.eval()
-decoder = Seq2SeqAttnDecoder(vocab_size=10, embed_size=8, num_hiddens=16,
-                             num_layers=2)
+decoder = Seq2SeqAttnDecoder(vocab_size=10, embed_size=8, num_hiddens=16, num_layers=2)
 decoder.eval()
 X = torch.zeros((4, 7), dtype=torch.long)  # (`batch_size`, `num_steps`)
 state = decoder.init_state(encoder(X), None)
@@ -199,30 +208,43 @@ batch_size, num_steps = 64, 10
 lr, num_epochs, device = 0.005, 250, d2l.try_gpu()
 train_iter, src_vocab, tgt_vocab = d2l.load_data_nmt(batch_size, num_steps)
 encoder = d2l.Seq2SeqEncoder(
-    len(src_vocab), embed_size, num_hiddens, num_layers, dropout)
+    len(src_vocab), embed_size, num_hiddens, num_layers, dropout
+)
 decoder = Seq2SeqAttnDecoder(
-    len(tgt_vocab), embed_size, num_hiddens, num_layers, dropout)
+    len(tgt_vocab), embed_size, num_hiddens, num_layers, dropout
+)
 net = d2l.EncoderDecoder(encoder, decoder)
 d2l.train_seq2seq(net, train_iter, lr, num_epochs, tgt_vocab, device)
 
 # %%
-engs = ['go .', "i lost .", 'he\'s calm .',
-        'i\'m home .', 'i don\'t think i can do it .']
-fras = ['va !', 'j\'ai perdu .', 'il est calme .',
-        'je suis chez moi .', 'je ne pense pas pouvoir le faire .']
+engs = ["go .", "i lost .", "he's calm .", "i'm home .", "i don't think i can do it ."]
+fras = [
+    "va !",
+    "j'ai perdu .",
+    "il est calme .",
+    "je suis chez moi .",
+    "je ne pense pas pouvoir le faire .",
+]
 for eng, fra in zip(engs, fras):
     translation, dec_attention_weight_seq = d2l.predict_seq2seq(
-        net, eng, src_vocab, tgt_vocab, num_steps, device, True)
-    print(f'{eng} => {translation}, ',
-          f'bleu {d2l.bleu(translation, fra, k=2):.3f}')
+        net, eng, src_vocab, tgt_vocab, num_steps, device, True
+    )
+    print(f"{eng} => {translation}, ", f"bleu {d2l.bleu(translation, fra, k=2):.3f}")
 
 # %%
 attention_weights = torch.cat(
-    [step[0][0][0] for step in dec_attention_weight_seq], 0).reshape((1, 1, -1, num_steps))
+    [step[0][0][0] for step in dec_attention_weight_seq], 0
+).reshape((1, 1, -1, num_steps))
 
 # %%
 d2l.show_heatmaps(
-    attention_weights[:, :, :, :len(engs[-2].split()) + 1].cpu(),
-    xlabel='Key posistions', ylabel='Query posistions')
+    attention_weights[:, :, :, : len(engs[-1].split()) + 1].cpu(),
+    xlabel="Key posistions",
+    ylabel="Query posistions",
+)
 
+# %%
+engs[-1]
+# %%
+len(dec_attention_weight_seq)
 # %%
