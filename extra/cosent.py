@@ -91,6 +91,7 @@ class CoSent(nn.Module):
         label = label[:, None] < label[None, :]
         label = label.long()
         cos_sim = cos_sim - (1-label) * 1e12
+        # 拼接一个0是因为e^0=1，相当于log中加1
         cos_sim = torch.cat((torch.zeros(1), cos_sim.view(-1)), dim=0)
         loss = torch.logsumexp(cos_sim, dim=0)
         return cos_sim, loss
