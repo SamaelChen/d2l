@@ -117,8 +117,8 @@ b = tokenizer(["有什么理财软件好用的", "推荐基金"],
               truncation=True,
               max_length=32, return_tensors='pt')
 # %%
-cosent(query=a['input_ids'], title=b['input_ids'],
-       query_attention_mask=a['attention_mask'],
-       title_attention_mask=b['attention_mask'],
-       label=torch.tensor([0, 1]))
+sim, loss = cosent(query=a['input_ids'], title=b['input_ids'],
+                   query_attention_mask=a['attention_mask'],
+                   title_attention_mask=b['attention_mask'],
+                   label=torch.tensor([0, 1]))
 # %%
