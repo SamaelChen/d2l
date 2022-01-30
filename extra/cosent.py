@@ -87,6 +87,11 @@ class CoSent(nn.Module):
                                        attention_mask=title_attention_mask,
                                        encoder_type=encoder_type)
         cos_sim = self.cosine_sim(query_vec, title_vec)*alpha
+        cos_sim = cos_sim[:, None] - cos_sim[None, :]
+        label = label[:, None] < label[None, :]
+        label = label.long()
+        cos_sim = cos_sim - (1-label) * 1e12
+        cos_sim = torch.cat((torch.zeros(1), cos_sim.view(-1)), dim=0)
         loss = torch.logsumexp(cos_sim, dim=0)
         return cos_sim, loss
 
@@ -106,15 +111,13 @@ a = tokenizer(["你说说到底有什么小说软件好用的", "推荐一个基
               padding=True,
               truncation=True,
               max_length=32, return_tensors='pt')
-b = tokenizer(["有什么小说软件好用的", "推荐基金"],
+b = tokenizer(["有什么理财软件好用的", "推荐基金"],
               padding=True,
               truncation=True,
               max_length=32, return_tensors='pt')
 # %%
-cosent.get_embedding(input_ids=a['input_ids'],
-                     attention_mask=a['attention_mask'])
-# %%
 cosent(query=a['input_ids'], title=b['input_ids'],
        query_attention_mask=a['attention_mask'],
-       title_attention_mask=b['attention_mask'])
+       title_attention_mask=b['attention_mask'],
+       label=torch.tensor([0, 1]))
 # %%
