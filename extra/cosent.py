@@ -191,6 +191,7 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
     total_steps = len(trainiter)
     scheduler = get_linear_schedule_with_warmup(optimizer=optimizer, num_warmup_steps=0.05 * total_steps,
                                                 num_training_steps=total_steps)
+    start = time.time()
     for epoch in range(epochs):
         torch.cuda.empty_cache()
         cosent.train()
@@ -224,12 +225,21 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
                                alpha=alpha,
                                encoder_type=encoder_type,
                                )
-            print("epoch:{}, steps:{}/{}, loss:{:10f}, corr:{:10f}".format(epoch,
-                                                                           step,
-                                                                           len(trainiter),
-                                                                           loss,
-                                                                           scipy.stats.spearmanr(l.cpu().tolist(),
-                                                                                                 sim.cpu().tolist()).correlation),
+            end = time.time()
+            dur = start - end
+            h = dur // 3600
+            dur -= h * 3600
+            m = dur // 60
+            dur -= m * 60
+            s = dur
+            print("epoch:{}, steps:{}/{}, loss:{:10f}, corr:{:10f}, time: {}:{}:{:3f}".format(epoch,
+                                                                                              step,
+                                                                                              len(
+                                                                                                  trainiter),
+                                                                                              loss,
+                                                                                              scipy.stats.spearmanr(l.cpu().tolist(),
+                                                                                                                    sim.cpu().tolist()).correlation,
+                                                                                              h, m, s),
                   end='\r')
             optimizer.step()
             scheduler.step()
