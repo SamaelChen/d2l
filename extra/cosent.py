@@ -226,20 +226,20 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
                                encoder_type=encoder_type,
                                )
             end = time.time()
-            dur = start - end
+            dur = end - start
             h = dur // 3600
             dur -= h * 3600
             m = dur // 60
             dur -= m * 60
             s = dur
-            print("epoch:{}, steps:{}/{}, loss:{:10f}, corr:{:10f}, time: {}:{}:{:3f}".format(epoch,
-                                                                                              step,
-                                                                                              len(
-                                                                                                  trainiter),
-                                                                                              loss,
-                                                                                              scipy.stats.spearmanr(l.cpu().tolist(),
-                                                                                                                    sim.cpu().tolist()).correlation,
-                                                                                              h, m, s),
+            print("epoch:{}, steps:{}/{}, loss:{:.5f}, corr:{:.5f}, time: {}:{}:{:.3f}".format(epoch,
+                                                                                               step,
+                                                                                               len(
+                                                                                                   trainiter),
+                                                                                               loss,
+                                                                                               scipy.stats.spearmanr(l.cpu().tolist(),
+                                                                                                                     sim.cpu().tolist()).correlation,
+                                                                                               int(h), int(m), s),
                   end='\r')
             optimizer.step()
             scheduler.step()
