@@ -133,12 +133,13 @@ class CoSent(nn.Module):
         loss = torch.logsumexp(cos_sim, dim=0)
         return cos_sim_ori, loss
 
-    def save(self, path):
+    def save(self, path, epoch):
         if not os.path.exists(path):
             os.makedirs(path)
-        self.bert.save_pretrained(path)
-        self.tokenizer.save_pretrained(path)
-        self.config.save_pretrained(path)
+        model_path = os.path.join(path, 'model_{}'.format(epoch))
+        self.bert.save_pretrained(model_path)
+        self.tokenizer.save_pretrained(model_path)
+        self.config.save_pretrained(model_path)
 
 
 # %%
@@ -274,7 +275,7 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
         print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
                                                                   val_loss,
                                                                   scipy.stats.spearmanr(label_val, sim_val).correlation))
-        cosent.save('simclue/model_{}/model_{}.pt'.format(encoder_type, epoch))
+        cosent.save('simclue/model_{}'.format(encoder_type), epoch)
 
 
 if __name__ == '__main__':
