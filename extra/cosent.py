@@ -298,12 +298,26 @@ if __name__ == '__main__':
                         default='bert-base-chinese', type=str, help='pretrained bert model')
     parser.add_argument('--num_train_epochs', default=5,
                         type=int, help='epochs')
-    parser.add_argument('--train_batch_size', default=32,
+    parser.add_argument('--batch_size', default=32,
                         type=int, help='batch_size')
     parser.add_argument('--learning_rate', default=1e-5,
                         type=float, help='learning rate')
+    parser.add_argument('--max_len', default=64,
+                        type=int, help='learning rate')
+    parser.add_argument('--alpha', default=20,
+                        type=int, help='learning rate')
+    parser.add_argument('--encoder_type', default='first-last-avg',
+                        type=str, help='learning rate')
     args = parser.parse_args()
     traindata = load_data(args.train_data)
     testdata = load_data(args.test_data)
-    train(args.num_train_epochs, traindata=traindata, testdata=testdata)
+    train(epochs=args.num_train_epochs,
+          traindata=traindata,
+          testdata=testdata,
+          lr=args.learning_rate,
+          batch_size=args.batch_size,
+          max_len=args.max_len,
+          alpha=args.alpha,
+          encoder_type=args.encoder_type,
+          bert=args.bert)
 # %%
