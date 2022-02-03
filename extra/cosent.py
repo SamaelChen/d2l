@@ -1,9 +1,5 @@
 # %%
-from base64 import encode
-from cmath import cos
-from lib2to3.pgen2.tokenize import tokenize
-from this import d
-from sympy import topological_sort
+import time
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -14,6 +10,7 @@ import json
 from tqdm import tqdm
 import scipy.stats
 import os
+import argparse
 
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
@@ -232,7 +229,8 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
                                                                            len(trainiter),
                                                                            loss,
                                                                            scipy.stats.spearmanr(l.cpu().tolist(),
-                                                                                                 sim.cpu().tolist()).correlation))
+                                                                                                 sim.cpu().tolist()).correlation),
+                  end='\r')
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
@@ -275,10 +273,27 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
         print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
                                                                   val_loss,
                                                                   scipy.stats.spearmanr(label_val, sim_val).correlation))
-        cosent.save('simclue/model_{}'.format(encoder_type), epoch)
+        cosent.save(
+            '/home/sameal/github/cosent/simclue/model_{}'.format(encoder_type), epoch)
 
 
 if __name__ == '__main__':
-    traindata = load_data('train_pair.json')
-    testdata = load_data('test_public.json')
-    train(5, traindata=traindata, testdata=testdata)
+    parser = argparse.ArgumentParser('--CoSent similarity')
+    parser.add_argument(
+        '--train_data', default='/home/samael/github/cosent/train_pair.json', type=str, help='train dataset')
+    parser.add_argument(
+        '--test_data', default='/home/samael/github/cosent/test_public.json', type=str, help='test dataset')
+
+    parser.add_argument('--bert',
+                        default='bert-base-chinese', type=str, help='pretrained bert model')
+    parser.add_argument('--num_train_epochs', default=5,
+                        type=int, help='epochs')
+    parser.add_argument('--train_batch_size', default=32,
+                        type=int, help='batch_size')
+    parser.add_argument('--learning_rate', default=1e-5,
+                        type=float, help='learning rate')
+    args = parser.parse_args()
+    traindata = load_data(args.train_data)
+    testdata = load_data(args.test_data)
+    train(args.num_train_epochs, traindata=traindata, testdata=testdata)
+# %%
