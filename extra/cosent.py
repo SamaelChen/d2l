@@ -300,7 +300,7 @@ if __name__ == '__main__':
                         type=int, help='epochs')
     parser.add_argument('--train_batch_size', default=32,
                         type=int, help='train batch size')
-    parser.add_argument('--test_batch_size', default=32,
+    parser.add_argument('--test_batch_size', default=2,
                         type=int, help='test batch size')
     parser.add_argument('--learning_rate', default=1e-5,
                         type=float, help='learning rate')
