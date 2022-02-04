@@ -179,8 +179,8 @@ def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_
                             testdata['titles'],
                             testdata['labels'])
     trainiter = DataLoader(trainset, batch_size=train_batch_size,
-                           shuffle=True, num_workers=test_batch_size)
-    testiter = DataLoader(testset, batch_size=4,
+                           shuffle=True, num_workers=4)
+    testiter = DataLoader(testset, batch_size=test_batch_size,
                           shuffle=False, num_workers=4)
     tokenizer = BertTokenizer.from_pretrained(bert)
     cosent = CoSent()
