@@ -170,7 +170,7 @@ def load_data(path):
 # %%
 
 
-def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
+def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_size=2,
           max_len=64, alpha=20, encoder_type='first-last-avg', bert='bert-base-chinese'):
     trainset = CustomDataset(traindata['queries'],
                              traindata['titles'],
@@ -178,8 +178,8 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
     testset = CustomDataset(testdata['queries'],
                             testdata['titles'],
                             testdata['labels'])
-    trainiter = DataLoader(trainset, batch_size=batch_size,
-                           shuffle=True, num_workers=4)
+    trainiter = DataLoader(trainset, batch_size=train_batch_size,
+                           shuffle=True, num_workers=test_batch_size)
     testiter = DataLoader(testset, batch_size=4,
                           shuffle=False, num_workers=4)
     tokenizer = BertTokenizer.from_pretrained(bert)
@@ -298,8 +298,10 @@ if __name__ == '__main__':
                         default='bert-base-chinese', type=str, help='pretrained bert model')
     parser.add_argument('--num_train_epochs', default=5,
                         type=int, help='epochs')
-    parser.add_argument('--batch_size', default=32,
-                        type=int, help='batch_size')
+    parser.add_argument('--train_batch_size', default=32,
+                        type=int, help='train batch size')
+    parser.add_argument('--test_batch_size', default=32,
+                        type=int, help='test batch size')
     parser.add_argument('--learning_rate', default=1e-5,
                         type=float, help='learning rate')
     parser.add_argument('--max_len', default=64,
@@ -307,7 +309,7 @@ if __name__ == '__main__':
     parser.add_argument('--alpha', default=20,
                         type=int, help='learning rate')
     parser.add_argument('--encoder_type', default='first-last-avg',
-                        type=str, help='learning rate')
+                        type=str, help='first-last-avg, last-avg, clf, pooler(clf+dense)')
     args = parser.parse_args()
     traindata = load_data(args.train_data)
     testdata = load_data(args.test_data)
@@ -315,7 +317,8 @@ if __name__ == '__main__':
           traindata=traindata,
           testdata=testdata,
           lr=args.learning_rate,
-          batch_size=args.batch_size,
+          train_batch_size=args.train_batch_size,
+          test_batch_size=args.test_batch_size,
           max_len=args.max_len,
           alpha=args.alpha,
           encoder_type=args.encoder_type,
