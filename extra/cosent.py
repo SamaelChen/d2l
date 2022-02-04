@@ -180,7 +180,7 @@ def train(epochs, traindata, testdata, lr=1e-5, batch_size=32,
                             testdata['labels'])
     trainiter = DataLoader(trainset, batch_size=batch_size,
                            shuffle=True, num_workers=4)
-    testiter = DataLoader(testset, batch_size=batch_size,
+    testiter = DataLoader(testset, batch_size=4,
                           shuffle=False, num_workers=4)
     tokenizer = BertTokenizer.from_pretrained(bert)
     cosent = CoSent()
