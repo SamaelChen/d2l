@@ -181,7 +181,7 @@ def load_csv_data(path):
 # %%
 
 
-def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_size=2,
+def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, test_batch_size=2,
           max_len=64, alpha=20, encoder_type='first-last-avg', bert='bert-base-chinese'):
     trainset = CustomDataset(traindata['queries'],
                              traindata['titles'],
@@ -296,8 +296,8 @@ def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_
         print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
                                                                   val_loss,
                                                                   scipy.stats.spearmanr(label_val, sim_val).correlation))
-        cosent.save(
-            '/home/samael/github/cosent/simclue/model_{}'.format(encoder_type), epoch)
+        cosent.save(os.path.join(save_path,
+                                 'model_{}'.format(encoder_type)), epoch)
 
 
 if __name__ == '__main__':
@@ -306,7 +306,8 @@ if __name__ == '__main__':
         '--train_data', default='/home/samael/github/cosent/train_pair.json', type=str, help='train dataset')
     parser.add_argument(
         '--test_data', default='/home/samael/github/cosent/test_public.json', type=str, help='test dataset')
-
+    parser.add_argument(
+        '--save_path', default='/home/samael/github/cosent/simclue', type=str, help='path to save model')
     parser.add_argument('--bert',
                         default='bert-base-chinese', type=str, help='pretrained bert model')
     parser.add_argument('--num_train_epochs', default=5,
@@ -329,6 +330,7 @@ if __name__ == '__main__':
     train(epochs=args.num_train_epochs,
           traindata=traindata,
           testdata=testdata,
+          save_path=args.save_path,
           lr=args.learning_rate,
           train_batch_size=args.train_batch_size,
           test_batch_size=args.test_batch_size,
