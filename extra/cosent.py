@@ -167,6 +167,17 @@ def load_data(path):
             titles.append(tmp['sentence2'])
             labels.append(tmp['label'])
     return {'queries': queries, 'titles': titles, 'labels': labels}
+
+
+def load_csv_data(path):
+    queries, titles, labels = [], [], []
+    with open(path, 'r') as f:
+        for line in tqdm(f.readlines()):
+            q, t, l = line.split('\t')
+            queries.append(q)
+            titles.append(t)
+            labels.append(l)
+    return {'queries': queries, 'titles': titles, 'labels': labels}
 # %%
 
 
