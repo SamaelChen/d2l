@@ -244,32 +244,32 @@ def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
-        with torch.no_grad():
-            cosent.eval()
-            sim_val, label_val = [], []
-            val_loss = 0
-            for step, (q, t, l) in tqdm(enumerate(testiter), total=len(testiter)):
-                q = tokenizer(q,
-                              padding=True,
-                              truncation=True,
-                              max_length=max_len,
-                              return_tensors='pt')
-                t = tokenizer(t,
-                              padding=True,
-                              truncation=True,
-                              max_length=max_len,
-                              return_tensors='pt')
-                l = torch.tensor([int(x) for x in l], dtype=torch.long)
-                q_input_ids = q['input_ids']
-                q_attention_mask = q['attention_mask']
-                t_input_ids = t['input_ids']
-                t_attention_mask = t['attention_mask']
-                if gpu:
-                    q_input_ids = q_input_ids.cuda()
-                    q_attention_mask = q_attention_mask.cuda()
-                    t_input_ids = t_input_ids.cuda()
-                    t_attention_mask = t_attention_mask.cuda()
-                    l = l.cuda()
+        cosent.eval()
+        sim_val, label_val = [], []
+        val_loss = 0
+        for step, (q, t, l) in tqdm(enumerate(testiter), total=len(testiter)):
+            q = tokenizer(q,
+                          padding=True,
+                          truncation=True,
+                          max_length=max_len,
+                          return_tensors='pt')
+            t = tokenizer(t,
+                          padding=True,
+                          truncation=True,
+                          max_length=max_len,
+                          return_tensors='pt')
+            l = torch.tensor([int(x) for x in l], dtype=torch.long)
+            q_input_ids = q['input_ids']
+            q_attention_mask = q['attention_mask']
+            t_input_ids = t['input_ids']
+            t_attention_mask = t['attention_mask']
+            if gpu:
+                q_input_ids = q_input_ids.cuda()
+                q_attention_mask = q_attention_mask.cuda()
+                t_input_ids = t_input_ids.cuda()
+                t_attention_mask = t_attention_mask.cuda()
+                l = l.cuda()
+            with torch.no_grad():
                 sim, loss = cosent(query=q_input_ids,
                                    title=t_input_ids,
                                    query_attention_mask=q_attention_mask,
@@ -278,13 +278,13 @@ def train(epochs, traindata, testdata, lr=1e-5, train_batch_size=32, test_batch_
                                    alpha=alpha,
                                    encoder_type=encoder_type,
                                    )
-                val_loss += loss
-                sim_val.extend(sim.cpu().tolist())
-                label_val.extend(l.cpu().tolist())
-            val_loss = val_loss / (step+1)
-            print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
-                                                                      val_loss,
-                                                                      scipy.stats.spearmanr(label_val, sim_val).correlation))
+            val_loss += loss
+            sim_val.extend(sim.cpu().tolist())
+            label_val.extend(l.cpu().tolist())
+        val_loss = val_loss / (step+1)
+        print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
+                                                                  val_loss,
+                                                                  scipy.stats.spearmanr(label_val, sim_val).correlation))
         cosent.save(
             '/home/samael/github/cosent/simclue/model_{}'.format(encoder_type), epoch)
 
