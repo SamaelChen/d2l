@@ -116,8 +116,8 @@ class CoSent(nn.Module):
                                       query_attention_mask=query_attention_mask,
                                       title_token_type_ids=title_token_type_ids,
                                       title_attention_mask=title_attention_mask,
-                                      encoder_type=encoder_type) * alpha
-        cos_sim = cos_sim_ori[:, None] - cos_sim_ori[None, :]
+                                      encoder_type=encoder_type)
+        cos_sim = (cos_sim_ori[:, None] - cos_sim_ori[None, :]) * alpha
         label = label[:, None] < label[None, :]
         label = label.long()
         cos_sim = cos_sim - (1 - label) * 1e12
@@ -257,7 +257,7 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
-            train_loss += loss.cpu().data
+            train_loss += loss.item()
             sim_train.extend(sim.cpu().tolist())
             label_train.extend(l.cpu().tolist())
         train_loss = train_loss / (step+1)
@@ -295,7 +295,7 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
                                    alpha=alpha,
                                    encoder_type=encoder_type,
                                    )
-            val_loss += loss
+            val_loss += loss.item()
             sim_val.extend(sim.cpu().tolist())
             label_val.extend(l.cpu().tolist())
         val_loss = val_loss / (step+1)
@@ -335,8 +335,8 @@ if __name__ == '__main__':
     parser.add_argument('--encoder_type', default='first-last-avg',
                         type=str, help='first-last-avg, last-avg, clf, pooler(clf+dense)')
     args = parser.parse_args()
-    traindata = load_data(args.train_data)
-    testdata = load_data(args.test_data)
+    traindata = load_csv_data(args.train_data)
+    testdata = load_csv_data(args.test_data)
     train(epochs=args.num_train_epochs,
           traindata=traindata,
           testdata=testdata,
