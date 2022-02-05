@@ -198,7 +198,15 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
     gpu = torch.cuda.is_available()
     if gpu:
         cosent = cosent.cuda()
-    optimizer = AdamW(params=cosent.parameters(), lr=lr)
+    param_optimizer = list(cosent.named_parameters())
+    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
+    optimizer_grouped_parameters = [
+        {'params': [p for n, p in param_optimizer if not any(
+            nd in n for nd in no_decay)], 'weight_decay': 0.01},
+        {'params': [p for n, p in param_optimizer if any(
+            nd in n for nd in no_decay)], 'weight_decay': 0.0}
+    ]
+    optimizer = AdamW(params=optimizer_grouped_parameters, lr=lr)
     total_steps = len(trainiter)
     scheduler = get_linear_schedule_with_warmup(optimizer=optimizer, num_warmup_steps=0.05 * total_steps,
                                                 num_training_steps=total_steps)
@@ -255,7 +263,7 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
                                                                                                int(h), int(m), s),
                   end='\r')
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             optimizer.zero_grad()
             train_loss += loss.item()
             sim_train.extend(sim.cpu().tolist())
