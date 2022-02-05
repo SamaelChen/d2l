@@ -206,6 +206,8 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
     for epoch in range(epochs):
         torch.cuda.empty_cache()
         cosent.train()
+        sim_train, label_train = [], []
+        train_loss = 0
         for step, (q, t, l) in enumerate(trainiter):
             q = tokenizer(q,
                           padding=True,
@@ -255,6 +257,10 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad()
+            train_loss += loss.cpu().data
+            sim_train.extend(sim.cpu().tolist())
+            label_train.extend(l.cpu().tolist())
+        train_loss = train_loss / (step+1)
         cosent.eval()
         sim_val, label_val = [], []
         val_loss = 0
@@ -293,9 +299,13 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
             sim_val.extend(sim.cpu().tolist())
             label_val.extend(l.cpu().tolist())
         val_loss = val_loss / (step+1)
-        print("epoch:{}, val_loss:{:10f}, val_corr:{:10f}".format(epoch,
-                                                                  val_loss,
-                                                                  scipy.stats.spearmanr(label_val, sim_val).correlation))
+        print("epoch: {}, train_loss: {:.5f}, train_corr: {:.5f}, val_loss: {:.5f}, val_corr: {:.5f}".format(epoch,
+                                                                                                             train_loss,
+                                                                                                             scipy.stats.spearmanr(label_train,
+                                                                                                                                   sim_train).correlation,
+                                                                                                             val_loss,
+                                                                                                             scipy.stats.spearmanr(label_val,
+                                                                                                                                   sim_val).correlation))
         cosent.save(os.path.join(save_path,
                                  'model_{}'.format(encoder_type)), epoch)
 
