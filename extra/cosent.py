@@ -246,6 +246,7 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
                                alpha=alpha,
                                encoder_type=encoder_type,
                                )
+            loss.backward()
             end = time.time()
             dur = end - start
             h = dur // 3600
