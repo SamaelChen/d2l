@@ -347,9 +347,9 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', default=1e-5,
                         type=float, help='learning rate')
     parser.add_argument('--max_len', default=64,
-                        type=int, help='learning rate')
+                        type=int, help='max length of sentence')
     parser.add_argument('--alpha', default=20,
-                        type=int, help='learning rate')
+                        type=int, help='parameter of loss function')
     parser.add_argument('--encoder_type', default='first-last-avg',
                         type=str, help='first-last-avg, last-avg, clf, pooler(clf+dense)')
     args = parser.parse_args()
