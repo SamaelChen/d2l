@@ -273,7 +273,7 @@ def train(epochs, traindata, testdata, save_path, lr=1e-5, train_batch_size=32, 
                                                                                                int(h), int(m), s),
                   end='\r')
             optimizer.step()
-            # scheduler.step()
+            scheduler.step()
             optimizer.zero_grad()
             train_loss += loss.item()
             sim_train.extend(sim.cpu().tolist())
