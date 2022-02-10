@@ -111,12 +111,21 @@ class CoSent(nn.Module):
         alpha=20,
         encoder_type="first-last-avg",
     ):
-        cos_sim_ori = self.cosine_sim(query=query, title=title,
-                                      query_token_type_ids=query_token_type_ids,
-                                      query_attention_mask=query_attention_mask,
-                                      title_token_type_ids=title_token_type_ids,
-                                      title_attention_mask=title_attention_mask,
-                                      encoder_type=encoder_type)
+        query_vec = self.get_embedding(
+            input_ids=query,
+            token_type_ids=query_token_type_ids,
+            attention_mask=query_attention_mask,
+            encoder_type=encoder_type,
+        )
+        title_vec = self.get_embedding(
+            input_ids=title,
+            token_type_ids=title_token_type_ids,
+            attention_mask=title_attention_mask,
+            encoder_type=encoder_type,
+        )
+        query_vec = F.normalize(query_vec, p=2, dim=-1)
+        title_vec = F.normalize(title_vec, p=2, dim=-1)
+        cos_sim_ori = torch.sum(query_vec * title_vec, axis=-1)
         cos_sim = (cos_sim_ori[:, None] - cos_sim_ori[None, :]) * alpha
         label = label[:, None] < label[None, :]
         label = label.long()
