@@ -53,7 +53,17 @@ def calc_cosim(vec_a, vec_b):
 
 
 def cosentloss(pred, label, alpha):
-    pass
+    pred = pred * alpha
+    pred = pred[:, None] - pred[None, :]
+    label = label[:, None] < label[None, :]
+    label = label.float()
+    pred = pred - (1-label) * 1e12
+    pred = pred.view(-1)
+    if torch.cuda.is_available():
+        pred = torch.cat((torch.tensor([0.]).cuda(), pred), dim=0)
+    else:
+        pred = torch.cat((torch.tensor([0.]), pred), dim=0)
+    return torch.logsumexp(pred, dim=0)
 # %%
 
 
