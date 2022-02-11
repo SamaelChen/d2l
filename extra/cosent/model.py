@@ -54,16 +54,3 @@ class CoSENT(nn.Module):
 
 
 # %%
-tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-# %%
-a = tokenizer(['测试一下不是吧', '是不是'], padding=True, truncation=True, text_pair=None,
-              add_special_tokens=True, return_token_type_ids=True, return_tensors='pt')
-# %%
-a['input_ids']
-# %%
-a['attention_mask']
-# %%
-model = CoSENT()
-# %%
-output = model(a['input_ids'], a['attention_mask'])
-# %%
