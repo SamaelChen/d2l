@@ -3,6 +3,7 @@ import json
 import scipy.stats
 from tqdm import tqdm
 import torch
+import torch.nn.functional as F
 from torch.utils.data import Dataset
 # %%
 
@@ -11,7 +12,7 @@ def calc_corr(x, y):
     return scipy.stats.spearmanr(x, y).correlation
 
 
-def load_data(path, type='csv', sep=None, pred=False):
+def load_data(path, type='json', sep=None, pred=False):
     """
     type: csv, json
     """
@@ -48,7 +49,9 @@ def load_data(path, type='csv', sep=None, pred=False):
 
 
 def calc_cosim(vec_a, vec_b):
-    sim = torch.sum(vec_a * vec_b, dim=1)
+    vec_a = F.normalize(vec_a, p=2, dim=-1)
+    vec_b = F.normalize(vec_b, p=2, dim=-1)
+    sim = torch.sum(vec_a * vec_b, dim=-1)
     return sim
 
 
