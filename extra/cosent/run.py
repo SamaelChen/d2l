@@ -144,9 +144,11 @@ if __name__ == '__main__':
                 t_attention_mask = t_attention_mask.cuda()
                 l = l.cuda()
             q_vec = cosent(input_ids=q_input_ids,
-                           attention_mask=q_attention_mask, type=args.encoder_type)
+                           attention_mask=q_attention_mask,
+                           encoder_type=args.encoder_type)
             t_vec = cosent(input_ids=t_input_ids,
-                           attention_mask=t_attention_mask, type=args.encoder_type)
+                           attention_mask=t_attention_mask,
+                           encoder_type=args.encoder_type)
             sim = calc_cosim(q_vec, t_vec)
             loss = cosentloss(sim, l, args.alpha)
             loss.backward()
