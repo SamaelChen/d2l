@@ -90,7 +90,8 @@ if __name__ == '__main__':
                         type=str, help='first-last-avg, last-avg, clf, pooler(clf+dense)')
     args = parser.parse_args()
     set_seed(args.seed)
-    os.makedirs(args.save_path)
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
     traindata = load_data(args.train_data, type=args.data_type, sep=args.sep)
     valdata = load_data(args.test_data, type=args.data_type, sep=args.sep)
     trainset = CustomDataset(traindata['queries'],
