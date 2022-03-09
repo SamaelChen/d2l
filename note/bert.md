@@ -45,7 +45,7 @@ $$
 <!-- slide -->
 <p align='left'><font size="20px">Self-supervised 
 word2vec</font></p>
-<p align='left'><font size="6px"><a href=https://code.google.com/archive/p/word2vec/ target="_blank">word2vec</a>工具是为了解决上述问题而提出的。它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同词之间的相似性和类比关系。word2vec工具包含两个模型，即跳元模型（<a href=https://arxiv.org/abs/1310.4546 target="_blank">skip-gram</a>）和连续词袋（<a href=https://arxiv.org/abs/1301.3781 target="_blank">CBOW</a>）。</font></p>
+<p align='left'><font size="6px"><a href=https://code.google.com/archive/p/word2vec/ target="_blank">word2vec</a>工具是为了解决上述问题而提出的。它将每个词映射到一个固定长度的向量，这些向量能更好地表达不同词之间的相似性和类比关系。word2vec工具包含两个模型，即跳元模型（<a href=https://arxiv.org/abs/1310.4546 target="_blank">skip-gram</a>）和连续词袋（<a href=https://arxiv.org/abs/1301.3781 target="_blank">CBOW</a>）。其后有各种优化版本的词向量出现，比较广泛应用的有<a href=https://nlp.stanford.edu/pubs/glove.pdf target="_blank">glove</a>和<a href=https://arxiv.org/abs/1607.04606 target="_blank">fasttext</a>。</font></p>
 <div style='width:50%;float:left;height:300px;'>The Skip-Gram Model
 <font size="6px">$P(\textrm{"the"},\textrm{"man"},\textrm{"his"},\textrm{"son"}\mid\textrm{"loves"}).$</font>
 <img src="https://zh-v2.d2l.ai/_images/skip-gram.svg" width=50% style="background-color:white;">
@@ -97,8 +97,12 @@ word2vec</font></p>
 =& -\log P(D=1\mid w^{(t)}, w^{(t+j)}) - \sum_{k=1,\ w_k \sim P(w)}^K \log P(D=0\mid w^{(t)}, w_k)\\
 =&-  \log\, \sigma\left(\mathbf{u}_{i_{t+j}}^\top \mathbf{v}_{i_t}\right) - \sum_{k=1,\ w_k \sim P(w)}^K \log\left(1-\sigma\left(\mathbf{u}_{h_k}^\top \mathbf{v}_{i_t}\right)\right)\\
 =&-  \log\, \sigma\left(\mathbf{u}_{i_{t+j}}^\top \mathbf{v}_{i_t}\right) - \sum_{k=1,\ w_k \sim P(w)}^K \log\sigma\left(-\mathbf{u}_{h_k}^\top \mathbf{v}_{i_t}\right).
-\end{aligned}\end{split}$$</font></div>
+\end{aligned}\end{split}$$
+$$\frac{l}{v_{i_t}}$$
+</font></div>
 
+<!-- slide -->
+<img src=https://blog.acolyer.org/wp-content/uploads/2016/04/word2vec-dr-fig-2.png height=70% width=70%></img>
 <!-- slide -->
 <p align='left'><font size="20px">Title</font></p>
 <div style='width:50%;float:left;height:600px;'>
