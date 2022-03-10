@@ -93,19 +93,33 @@ word2vec</font></p>
 <p align='left'><font size="6px">Negative sampling
 
 <font size="5px">$$\begin{split}\begin{aligned}
--\log P(w^{(t+j)} \mid w^{(t)})
+l=-\log P(w^{(t+j)} \mid w^{(t)})
 =& -\log P(D=1\mid w^{(t)}, w^{(t+j)}) - \sum_{k=1,\ w_k \sim P(w)}^K \log P(D=0\mid w^{(t)}, w_k)\\
 =&-  \log\, \sigma\left(\mathbf{u}_{i_{t+j}}^\top \mathbf{v}_{i_t}\right) - \sum_{k=1,\ w_k \sim P(w)}^K \log\left(1-\sigma\left(\mathbf{u}_{h_k}^\top \mathbf{v}_{i_t}\right)\right)\\
 =&-  \log\, \sigma\left(\mathbf{u}_{i_{t+j}}^\top \mathbf{v}_{i_t}\right) - \sum_{k=1,\ w_k \sim P(w)}^K \log\sigma\left(-\mathbf{u}_{h_k}^\top \mathbf{v}_{i_t}\right).
 \end{aligned}\end{split}$$
-$$\frac{l}{v_{i_t}}$$
+$$\frac{\partial l}{v_{i_t}} = -\sigma\left(-\mathbf{u}_{i_{t+j}}^\top \mathbf{v}_{i_t}\right) \mathbf{u}_{i_{t+j}} + \sum_{k=1, w_k \sim P(w)}^K \sigma \left(\mathbf{u}_{h_k}^\top \mathbf{v}_{i_t} \right) \mathbf{u}_{h_k}$$
 </font></div>
 
 <!-- slide -->
 <img src=https://blog.acolyer.org/wp-content/uploads/2016/04/word2vec-dr-fig-2.png height=70% width=70%></img>
 <!-- slide -->
-<p align='left'><font size="20px">Title</font></p>
-<div style='width:50%;float:left;height:600px;'>
+<p align='left'><a href=https://arxiv.org/abs/1802.05365 target="_blank"><font size="20px">ELMo</font></a></p>
+<div style='width:50%;float:left;height:200px;'>
+<p align='left'><font size="6px">word2vec和GloVe都将相同的预训练向量分配给同一个词，而不考虑词的上下文（如果有的话）。单身人的来由：原来是喜欢一个人；现在是喜欢一个人。“一个人”一词有完全不同的含义；因此，同一个词可以根据上下文被赋予不同的表示。</font></p>
 </div>
-<div style='width:50%;float:left;height:600px;'>
+<div style='width:50%;float:left;height:200px;'>
+<img src=https://upload.wikimedia.org/wikipedia/commons/5/5a/Jeff_Sessions_with_Elmo_and_Rosita_%28cropped%29.jpg></img>
+</div>
+<div style='width:100%;float:left;height:20px;'></div>
+<div style='width:100%;float:left;height:600px;'>
+<img src=https://pic2.zhimg.com/v2-7cc35961aa9a92d9134fc80ad890dccc_1440w.jpg?source=172ae18b height=70% width=50%></img>
+<font size="6px">$\sum_{k=1}^N (log p(t_{k}|t_{1},...,t_{k-1};\Theta_{x},\overrightarrow\Theta_{LSTM},\Theta_{s})+log p(t_{k}|t_{k+1},...,t_{N};\overleftarrow\Theta_{LSTM},\Theta_{s}))$</font>
+</div>
+
+<!-- slide -->
+<p align='left'><a href=https://arxiv.org/abs/1802.05365 target="_blank"><font size="20px">ELMo</font></a></p>
+<div style='width:100%;float:left;height:20px;'></div>
+<div style='width:100%;float:left;height:600px;'>
+<img src=https://paddlepedia.readthedocs.io/en/latest/_images/elmo.png height=100% width=80%></img>
 </div>
