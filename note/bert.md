@@ -123,3 +123,40 @@ $$\frac{\partial l}{v_{i_t}} = -\sigma\left(-\mathbf{u}_{i_{t+j}}^\top \mathbf{v
 <div style='width:100%;float:left;height:600px;'>
 <img src=https://paddlepedia.readthedocs.io/en/latest/_images/elmo.png height=100% width=80%></img>
 </div>
+
+<!-- slide -->
+<p align='left'><font size='20px'>Attention Mechanisms</font></p>
+<p align='left'><font size='6px'>Using the nonvolitional cue</font></p>
+<div style='width:100%;float:left;height:800px;'><img src=attention1.jpg height=90% width=85%></div>
+
+<!-- slide -->
+<p align='left'><font size='20px'>Attention Mechanisms</font></p>
+<p align='left'><font size='6px'>Using the volitional cue</font></p>
+<div style='width:100%;float:left;height:800px;'><img src=attention2.jpg height=90% width=85%></div>
+
+<!-- slide -->
+<p align='left'><font size='20px'>Attention Mechanisms</font></p>
+<p align='left'><font size='6px'>Using the volitional cue</font></p>
+<div style='width:100%;float:left;height:800px;'><img src=https://d2l.ai/_images/qkv.svg height=90% width=80% style="background:white"></div>
+
+<!-- slide -->
+<p align='left'><font size='20px'>Attention Mechanisms</font></p>
+<p align='left'><font size='6px'>Attention Pooling <a href=https://epubs.siam.org/doi/abs/10.1137/1109020?journalCode=tprbau target="_blank">Nadaraya</a>-<a href=https://www.jstor.org/stable/25049340 target="_blank">Watson</a> Kernel Regression $y_i = 2\sin(x_i) + x_i^{0.8} + \epsilon,$</font></p>
+<div style='width:50%;float:left;height:800px;'>
+<p> average pooling $$f(x) = \frac{1}{n}\sum_{i=1}^n y_i$$
+<img src=https://d2l.ai/_images/output_nadaraya-watson_61a333_32_0.svg height=70% width=65% style="background:white"></img></div>
+<div style='width:50%;float:left;height:800px;'>
+<p> attention pooling $$f(x) = \sum_{i=1}^n \frac{K(x - x_i)}{\sum_{j=1}^n K(x - x_j)} y_i,$$
+<img src=https://d2l.ai/_images/output_nadaraya-watson_61a333_44_0.svg height=70% width=65% style="background:white"></img></div>
+
+<!-- slide -->
+<p align='left'><font size='20px'>Attention Mechanisms</font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=https://d2l.ai/_images/cnn-rnn-self-attention.svg height=100% width=95% style="background:white">
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://arxiv.org/abs/1706.03762v5 target="_blank">Transformer</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=https://d2l.ai/_images/transformer.svg height=100% width=95% style="background:white">
+</div>
