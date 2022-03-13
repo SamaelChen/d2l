@@ -114,7 +114,7 @@ $$\frac{\partial l}{v_{i_t}} = -\sigma\left(-\mathbf{u}_{i_{t+j}}^\top \mathbf{v
 <div style='width:100%;float:left;height:20px;'></div>
 <div style='width:100%;float:left;height:600px;'>
 <img src=https://pic2.zhimg.com/v2-7cc35961aa9a92d9134fc80ad890dccc_1440w.jpg?source=172ae18b height=70% width=50%></img>
-<font size="6px">$\sum_{k=1}^N (log p(t_{k}|t_{1},...,t_{k-1};\Theta_{x},\overrightarrow\Theta_{LSTM},\Theta_{s})+log p(t_{k}|t_{k+1},...,t_{N};\overleftarrow\Theta_{LSTM},\Theta_{s}))$</font>
+<font size="6px">$\sum_{k=1}^N (\log p(t_{k}|t_{1},...,t_{k-1};\Theta_{x},\overrightarrow\Theta_{LSTM},\Theta_{s})+\log p(t_{k}|t_{k+1},...,t_{N};\overleftarrow\Theta_{LSTM},\Theta_{s}))$</font>
 </div>
 
 <!-- slide -->
@@ -159,4 +159,35 @@ $$\frac{\partial l}{v_{i_t}} = -\sigma\left(-\mathbf{u}_{i_{t+j}}^\top \mathbf{v
 <p align='left'><font size='20px'><a href=https://arxiv.org/abs/1706.03762v5 target="_blank">Transformer</a></font></p>
 <div style='width:100%;float:left;height:800px;'>
 <img src=https://d2l.ai/_images/transformer.svg height=100% width=95% style="background:white">
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf target="_blank">GPT</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=gpt.jpg height=100% width=100% style="background:white">
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://arxiv.org/abs/1810.04805 target="_blank">BERT</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=bert1.jpg height=80% width=100% style="background:white">
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://arxiv.org/abs/1810.04805 target="_blank">BERT</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=bert2.jpg height=60% width=100% style="background:white">
+<p align='left'><font size='6px'>BERT是transformer的encoder部分，GPT是decoder拿掉multi-head以后的部分，把ELMo的LSTM换成transformer就是BERT。回过头，BERT可以看做是deep CBOW。</font></p>
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://arxiv.org/abs/1810.04805 target="_blank">BERT</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=bert3.jpg height=90% width=100% style="background:white">
+</div>
+
+<!-- slide -->
+<p align='left'><font size='20px'><a href=https://arxiv.org/abs/1810.04805 target="_blank">BERT</a></font></p>
+<div style='width:100%;float:left;height:800px;'>
+<img src=bert4.jpg height=90% width=100% style="background:white">
 </div>
