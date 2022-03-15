@@ -39,7 +39,7 @@ $$
 <p align='left'><font size="6px">Dictionary: [ 'I', 'like', 'enjoy', 'deep', 'learning', 'NLP', 'flying', '.' ]</font></p>
 </div>
 <div style='width:50%;float:left;height:600px;'>
-<img src="https://editor.analyticsvidhya.com/uploads/37840Screenshot%202021-06-18%20at%2012.19.48%20AM.png">
+<img src="https://www.researchgate.net/profile/Majid_F_Sadi/publication/332703770/figure/fig1/AS:752289044234240@1556371093356/1-Co-occurrence-matrix-for-three-sample-sentences.ppm">
 </div>
 
 <!-- slide -->
