@@ -183,7 +183,7 @@ def get_lm_data_from_tokens(note_tokens,
             time_series, time_pred_labels)
 
 
-def pad_inputs(examples, max_len, vocab):
+def pad_inputs(examples, max_len, note_vocab, velocity_vocab):
     max_num_lm_preds = round(max_len * 0.15)
     all_note_token_ids, all_velocity_token_ids, all_times, valid_lens,  = [], [], [], []
     all_pred_positions, all_lm_weights = [], []
@@ -191,12 +191,12 @@ def pad_inputs(examples, max_len, vocab):
     for (pred_positions, note_token_ids, lm_note_pred_label_ids,
          velocity_token_ids, lm_velocity_pred_label_ids,
          times, lm_time_pred_labels) in examples:
-        all_note_token_ids.append(torch.tensor(note_token_ids + [vocab['<pad>']] * (
+        all_note_token_ids.append(torch.tensor(note_token_ids + [note_vocab['<pad>']] * (
             max_len - len(note_token_ids)), dtype=torch.long))
-        all_velocity_token_ids.append(torch.tensor(velocity_token_ids + [vocab['<pad>']] * (
+        all_velocity_token_ids.append(torch.tensor(velocity_token_ids + [velocity_vocab['<pad>']] * (
             max_len - len(velocity_token_ids)), dtype=torch.long))
         all_times.append(torch.tensor(times + [0] * (
-            max_len - len(times)), dtype=torch.long))
+            max_len - len(times)), dtype=torch.float32))
         # valid_lens不包括'<pad>'的计数
         valid_lens.append(torch.tensor(len(note_token_ids),
                                        dtype=torch.float32))
@@ -212,30 +212,44 @@ def pad_inputs(examples, max_len, vocab):
         all_velocity_lm_labels.append(torch.tensor(lm_velocity_pred_label_ids + [0] * (
             max_num_lm_preds - len(lm_velocity_pred_label_ids)), dtype=torch.long))
         all_times_lm_labels.append(torch.tensor(lm_time_pred_labels + [0] * (
-            max_num_lm_preds - len(lm_time_pred_labels)), dtype=torch.long))
+            max_num_lm_preds - len(lm_time_pred_labels)), dtype=torch.float32))
     return (all_note_token_ids, all_velocity_token_ids, all_times,
             valid_lens, all_pred_positions, all_lm_weights,
             all_note_lm_labels, all_velocity_lm_labels, all_times_lm_labels)
 
 
 # %%
-format_midi(
-    '/Users/samael/Downloads/GiantMIDI-PIano/sample',
-    '/Users/samael/Downloads/GiantMIDI-PIano/pkl_file',
-    return_res=False)
-# %%
-notes, velocities, times = load_midi(
-    '/Users/samael/Downloads/GiantMIDI-PIano/pkl_file/mid.pkl')
-# %%
-note_vocab = Vocab(notes, reserved_tokens=[
-                   '<pad>', '<mask>', '<cls>', '<sep>'])
-velocity_vocab = Vocab(velocities, reserved_tokens=[
-    '<pad>', '<mask>', '<cls>', '<sep>'])
-# %%
-a, b, c, d, e, f, g = get_lm_data_from_tokens(
-    notes, velocities, times, note_vocab, velocity_vocab)
-# %%
-a
-# %%
-b
+class MidiDataset(Dataset):
+    def __init__(self, notes, velocities, times,
+                 note_vocab, velocity_vocab, max_len) -> None:
+        exmp = []
+        for note, velocity, time in zip(notes, velocities, times):
+            exmp.append(get_lm_data_from_tokens(note, velocity, time,
+                                                note_vocab, velocity_vocab))
+        (self.all_note_token_ids, self.all_velocity_token_ids, self.all_times,
+         self.valid_lens, self.all_pred_positions, self.all_lm_weights,
+         self.all_note_lm_labels, self.all_velocity_lm_labels,
+         self.all_times_lm_labels) = pad_inputs(
+            exmp, max_len, note_vocab, velocity_vocab)
+
+    def __getitem__(self, idx):
+        return(self.all_note_token_ids[idx], self.all_velocity_token_ids[idx],
+               self.all_times[idx], self.valid_lens[idx], self.all_pred_positions[idx],
+               self.all_lm_weights[idx], self.all_note_lm_labels[idx],
+               self.all_velocity_lm_labels[idx], self.all_times_lm_labels[idx])
+
+    def __len__(self):
+        return len(self.all_note_token_ids)
+
+
+def load_data(batch_size, notes, velocities, times,
+              note_vocab, velocity_vocab, max_len):
+    num_workers = torch.get_num_threads()
+    train_set = MidiDataset(notes, velocities, times,
+                            note_vocab, velocity_vocab, max_len)
+    train_iter = DataLoader(train_set, batch_size, shuffle=True,
+                            num_workers=num_workers)
+    return train_iter
+
+
 # %%
