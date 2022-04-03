@@ -424,8 +424,8 @@ class GPTModel(nn.Module):
                                   query_size=query_size, value_size=value_size)
         self.hidden = nn.Sequential(nn.Linear(hid_in_features, num_hiddens),
                                     nn.Tanh())
-        self.mlm = MaskLM(note_size, velocity_size,
-                          num_hiddens, mlm_in_features)
+        self.mlm = LM(note_size, velocity_size,
+                      num_hiddens, mlm_in_features)
 
     def forward(self, tokens, valid_lens=None,
                 pred_positions=None):
