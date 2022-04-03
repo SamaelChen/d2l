@@ -105,6 +105,12 @@ def seg_mid(notes, velocities, times):
             velocity_split.append(velocity[i: i+32])
             time_split.append(time[i: i+32])
             i += 32
+        note_split[0] = ['<bos>'] + note_split[0]
+        note_split[-1] = note_split[-1] + ['<eos>']
+        velocity_split[0] = ['<bos>'] + velocity_split[0]
+        velocity_split[-1] = velocity_split[-1] + ['<eos>']
+        time_split[0] = [-1] + time_split[0]
+        time_split[-1] = time_split[-1] + [-1]
         notes[idx] = note_split
         velocities[idx] = velocity_split
         times[idx] = time_split
@@ -130,38 +136,86 @@ def get_tempo(mid):
             return msg.tempo
 
 
-def replace_mlm_tokens(
+def replace_lm_tokens(
         note_tokens,
         velocity_tokens,
         time_series,
         candidate_pred_positions,
-        num_mlm_preds,
-        note_vocab,
-        velocity_vocab):
+        num_mlm_preds):
     # 为遮蔽语言模型的输入创建新的词元副本，其中输入可能包含替换的“<mask>”或随机词元
-    mlm_note_tokens = [token for token in note_tokens]
-    mlm_velocity_tokens = [token for token in velocity_tokens]
     pred_positions_and_labels = []
-    # 打乱后用于在遮蔽语言模型任务中获取15%的随机词元进行预测
     random.shuffle(candidate_pred_positions)
     for mlm_pred_position in candidate_pred_positions:
         if len(pred_positions_and_labels) >= num_mlm_preds:
             break
-        masked_token = None
-        # 80%的时间：将词替换为“<mask>”词元
-        if random.random() < 0.8:
-            masked_token = '<mask>'
-        else:
-            # 10%的时间：保持词不变
-            if random.random() < 0.5:
-                masked_token = tokens[mlm_pred_position]
-            # 10%的时间：用随机词替换该词
-            else:
-                masked_token = random.choice(vocab.idx_to_token)
-        mlm_input_tokens[mlm_pred_position] = masked_token
         pred_positions_and_labels.append(
-            (mlm_pred_position, tokens[mlm_pred_position]))
-    return mlm_input_tokens, pred_positions_and_labels
+            (mlm_pred_position, note_tokens[mlm_pred_position],
+             velocity_tokens[mlm_pred_position],
+             time_series[mlm_pred_position]))
+    return pred_positions_and_labels
+
+
+def get_lm_data_from_tokens(note_tokens,
+                            velocity_tokens,
+                            time_series,
+                            note_vocab,
+                            velocity_vocab):
+    candidate_pred_positions = []
+    # tokens是一个字符串列表
+    for i, token in enumerate(note_tokens):
+        # 在遮蔽语言模型任务中不会预测特殊词元
+        if token in ['<cls>', '<sep>']:
+            continue
+        candidate_pred_positions.append(i)
+    # 遮蔽语言模型任务中预测15%的随机词元
+    num_mlm_preds = max(1, round(len(note_tokens) * 0.15))
+    pred_positions_and_labels = replace_lm_tokens(
+        note_tokens, velocity_tokens, time_series,
+        candidate_pred_positions, num_mlm_preds)
+    pred_positions_and_labels = sorted(pred_positions_and_labels,
+                                       key=lambda x: x[0])
+    pred_positions = [v[0] for v in pred_positions_and_labels]
+    note_pred_labels = [v[1] for v in pred_positions_and_labels]
+    velocity_pred_labels = [v[2] for v in pred_positions_and_labels]
+    time_pred_labels = [v[3] for v in pred_positions_and_labels]
+    return (pred_positions, note_vocab[note_tokens], note_vocab[note_pred_labels],
+            velocity_vocab[velocity_tokens], velocity_vocab[velocity_pred_labels],
+            time_series, time_pred_labels)
+
+
+def pad_inputs(examples, max_len, vocab):
+    max_num_lm_preds = round(max_len * 0.15)
+    all_note_token_ids, all_velocity_token_ids, all_times, valid_lens,  = [], [], [], []
+    all_pred_positions, all_lm_weights = [], []
+    all_note_lm_labels, all_velocity_lm_labels, all_times_lm_labels = [], [], []
+    for (pred_positions, note_token_ids, lm_note_pred_label_ids,
+         velocity_token_ids, lm_velocity_pred_label_ids,
+         times, lm_time_pred_labels) in examples:
+        all_note_token_ids.append(torch.tensor(note_token_ids + [vocab['<pad>']] * (
+            max_len - len(note_token_ids)), dtype=torch.long))
+        all_velocity_token_ids.append(torch.tensor(velocity_token_ids + [vocab['<pad>']] * (
+            max_len - len(velocity_token_ids)), dtype=torch.long))
+        all_times.append(torch.tensor(times + [0] * (
+            max_len - len(times)), dtype=torch.long))
+        # valid_lens不包括'<pad>'的计数
+        valid_lens.append(torch.tensor(len(note_token_ids),
+                                       dtype=torch.float32))
+        all_pred_positions.append(torch.tensor(pred_positions + [0] * (
+            max_num_lm_preds - len(pred_positions)), dtype=torch.long))
+        # 填充词元的预测将通过乘以0权重在损失中过滤掉
+        all_lm_weights.append(
+            torch.tensor([1.0] * len(lm_note_pred_label_ids) + [0.0] * (
+                max_num_lm_preds - len(pred_positions)),
+                dtype=torch.float32))
+        all_note_lm_labels.append(torch.tensor(lm_note_pred_label_ids + [0] * (
+            max_num_lm_preds - len(lm_note_pred_label_ids)), dtype=torch.long))
+        all_velocity_lm_labels.append(torch.tensor(lm_velocity_pred_label_ids + [0] * (
+            max_num_lm_preds - len(lm_velocity_pred_label_ids)), dtype=torch.long))
+        all_times_lm_labels.append(torch.tensor(lm_time_pred_labels + [0] * (
+            max_num_lm_preds - len(lm_time_pred_labels)), dtype=torch.long))
+    return (all_note_token_ids, all_velocity_token_ids, all_times,
+            valid_lens, all_pred_positions, all_lm_weights,
+            all_note_lm_labels, all_velocity_lm_labels, all_times_lm_labels)
 
 
 # %%
@@ -175,4 +229,13 @@ notes, velocities, times = load_midi(
 # %%
 note_vocab = Vocab(notes, reserved_tokens=[
                    '<pad>', '<mask>', '<cls>', '<sep>'])
+velocity_vocab = Vocab(velocities, reserved_tokens=[
+    '<pad>', '<mask>', '<cls>', '<sep>'])
+# %%
+a, b, c, d, e, f, g = get_lm_data_from_tokens(
+    notes, velocities, times, note_vocab, velocity_vocab)
+# %%
+a
+# %%
+b
 # %%

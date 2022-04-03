@@ -354,7 +354,6 @@ class GPTEncoder(nn.Module):
         self.velocity_embedding = nn.Embedding(velocity_size, num_hiddens)
         self.time_embedding = nn.Parameter(
             torch.randn(1, 1, num_hiddens))
-        self.segment_embedding = nn.Embedding(2, num_hiddens)
         self.blks = nn.Sequential()
         for i in range(num_layers):
             self.blks.add_module(f"{i}", EncoderBlock(
@@ -363,11 +362,10 @@ class GPTEncoder(nn.Module):
         self.pos_embedding = nn.Parameter(torch.randn(1, max_len,
                                                       num_hiddens))
 
-    def forward(self, tokens, segments, valid_lens):
+    def forward(self, tokens, valid_lens):
         # 在以下代码段中，X的形状保持不变：（批量大小，最大序列长度，num_hiddens）
         X = self.note_embedding(tokens[0])\
-            + self.velocity_embedding(tokens[1])\
-            + self.segment_embedding(segments)
+            + self.velocity_embedding(tokens[1])
         X = X + torch.bmm(tokens[2], self.time_embedding.repeat_interleave(X.shape[0], dim=0))\
             + self.pos_embedding.data[:, :X.shape[1], :]
         for blk in self.blks:
@@ -377,11 +375,11 @@ class GPTEncoder(nn.Module):
 # @save
 
 
-class MaskLM(nn.Module):
+class LM(nn.Module):
     """BERT的掩蔽语言模型任务"""
 
     def __init__(self, note_size, velocity_size, num_hiddens, num_inputs=768, **kwargs):
-        super(MaskLM, self).__init__(**kwargs)
+        super(LM, self).__init__(**kwargs)
         self.note_mlp = nn.Sequential(nn.Linear(num_inputs, num_hiddens),
                                       nn.ReLU(),
                                       nn.LayerNorm(num_hiddens),
@@ -429,9 +427,9 @@ class GPTModel(nn.Module):
         self.mlm = MaskLM(note_size, velocity_size,
                           num_hiddens, mlm_in_features)
 
-    def forward(self, tokens, segments, valid_lens=None,
+    def forward(self, tokens, valid_lens=None,
                 pred_positions=None):
-        encoded_X = self.encoder(tokens, segments, valid_lens)
+        encoded_X = self.encoder(tokens, valid_lens)
         if pred_positions is not None:
             mlm_note_hat, mlm_velocity_hat, mlm_time_hat = self.mlm(
                 encoded_X, pred_positions)
