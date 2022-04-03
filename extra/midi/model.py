@@ -366,7 +366,9 @@ class GPTEncoder(nn.Module):
         # 在以下代码段中，X的形状保持不变：（批量大小，最大序列长度，num_hiddens）
         X = self.note_embedding(tokens[0])\
             + self.velocity_embedding(tokens[1])
-        X = X + torch.bmm(tokens[2], self.time_embedding.repeat_interleave(X.shape[0], dim=0))\
+        X = X + torch.bmm(tokens[2].view(tokens[2].shape[0], tokens[2].shape[1], 1),
+                          self.time_embedding.repeat_interleave(X.shape[0],
+                                                                dim=0))\
             + self.pos_embedding.data[:, :X.shape[1], :]
         for blk in self.blks:
             X = blk(X, valid_lens)
@@ -403,10 +405,10 @@ class LM(nn.Module):
         batch_idx = torch.repeat_interleave(batch_idx, num_pred_positions)
         masked_X = X[batch_idx, pred_positions]
         masked_X = masked_X.reshape((batch_size, num_pred_positions, -1))
-        mlm_note_hat = self.note_mlp(masked_X)
-        mlm_velocity_hat = self.velocity_mlp(masked_X)
-        mlm_time_hat = self.time_mlp(masked_X)
-        return mlm_note_hat, mlm_velocity_hat, mlm_time_hat
+        lm_note_hat = self.note_mlp(masked_X)
+        lm_velocity_hat = self.velocity_mlp(masked_X)
+        lm_time_hat = self.time_mlp(masked_X)
+        return lm_note_hat, lm_velocity_hat, lm_time_hat
 
 
 # @save
@@ -416,7 +418,7 @@ class GPTModel(nn.Module):
     def __init__(self, note_size, velocity_size, num_hiddens, norm_shape,
                  ffn_num_input, ffn_num_hiddens, num_heads, num_layers, dropout,
                  max_len=1000, key_size=768, query_size=768, value_size=768,
-                 hid_in_features=768, mlm_in_features=768):
+                 hid_in_features=768, lm_in_features=768):
         super(GPTModel, self).__init__()
         self.encoder = GPTEncoder(note_size, velocity_size, num_hiddens, norm_shape,
                                   ffn_num_input, ffn_num_hiddens, num_heads, num_layers,
@@ -424,15 +426,15 @@ class GPTModel(nn.Module):
                                   query_size=query_size, value_size=value_size)
         self.hidden = nn.Sequential(nn.Linear(hid_in_features, num_hiddens),
                                     nn.Tanh())
-        self.mlm = LM(note_size, velocity_size,
-                      num_hiddens, mlm_in_features)
+        self.lm = LM(note_size, velocity_size,
+                     num_hiddens, lm_in_features)
 
     def forward(self, tokens, valid_lens=None,
                 pred_positions=None):
         encoded_X = self.encoder(tokens, valid_lens)
         if pred_positions is not None:
-            mlm_note_hat, mlm_velocity_hat, mlm_time_hat = self.mlm(
+            lm_note_hat, lm_velocity_hat, lm_time_hat = self.lm(
                 encoded_X, pred_positions)
         else:
-            mlm_note_hat, mlm_velocity_hat, mlm_time_hat = None, None, None
-        return encoded_X, mlm_note_hat, mlm_velocity_hat, mlm_time_hat
+            lm_note_hat, lm_velocity_hat, lm_time_hat = None, None, None
+        return encoded_X, lm_note_hat, lm_velocity_hat, lm_time_hat

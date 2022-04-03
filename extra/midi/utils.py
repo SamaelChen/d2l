@@ -253,3 +253,31 @@ def load_data(batch_size, notes, velocities, times,
 
 
 # %%
+def get_batch_loss(net,
+                   celoss,
+                   mseloss,
+                   note_vocab_size,
+                   velocity_vocab_size,
+                   note_tokens,
+                   velocity_tokens,
+                   times,
+                   pred_positions,
+                   valid_lens,
+                   lm_weights,
+                   note_lm_labels,
+                   velocity_lm_labels,
+                   times_lm_labels):
+    tokens = (note_tokens, velocity_tokens, times)
+    _, lm_note_hat, lm_velocity_hat, lm_time_hat = net(
+        tokens, valid_lens, pred_positions)
+    note_lm_l = celoss(lm_note_hat.reshape(-1, note_vocab_size), note_lm_labels.reshape(-1)) *\
+        lm_weights.reshape(-1, 1)
+    velocity_lm_l = celoss(lm_velocity_hat.reshape(-1, velocity_vocab_size), velocity_lm_labels.reshape(-1)) *\
+        lm_weights.reshape(-1, 1)
+    time_lm_l = mseloss(lm_time_hat.squeeze(-1), times_lm_labels) * \
+        lm_weights.reshape(-1, 1)
+    note_lm_l = note_lm_l.sum() / (lm_weights.sum() + 1e-8)
+    velocity_lm_l = velocity_lm_l.sum() / (lm_weights.sum() + 1e-8)
+    time_lm_l = time_lm_l.sum() / (lm_weights.sum() + 1e-8)
+    l = note_lm_l + velocity_lm_l + time_lm_l
+    return l, note_lm_l, velocity_lm_l, time_lm_l
