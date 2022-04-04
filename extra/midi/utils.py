@@ -300,6 +300,7 @@ def train_bert(train_iter, net, celoss, mseloss,
              times, valid_lens, pred_positions,
              lm_weights, note_lm_labels,
              velocity_lm_labels, times_lm_labels) in train_iter:
+            torch.cuda.empty_cache()
             note_token_ids = note_token_ids.to(devices[0])
             velocity_token_ids = velocity_token_ids.to(devices[0])
             times = times.to(devices[0])
