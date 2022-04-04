@@ -6,6 +6,11 @@ from utils import *
 import torch
 from torch import nn
 import mido
+import logging
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)s %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 # %%
 format_midi(
     '/Users/samael/Downloads/GiantMIDI-PIano/sample',
@@ -51,3 +56,5 @@ get_batch_loss(model, celoss, mseloss, len(note_vocab),
                len(velocity_vocab), note_token_ids, velocity_token_ids,
                times, pred_positions, valid_lens, lm_weights,
                note_lm_labels, velocity_lm_labels, times_lm_labels)
+
+# %%
