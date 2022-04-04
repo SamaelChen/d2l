@@ -1,7 +1,8 @@
 # %%
+from hypothesis import note
 from tqdm import tqdm
-from zmq import device
-from model import GPTEncoder, LM, GPTModel
+import pickle
+from model import GPTModel
 from utils import *
 import torch
 from torch import nn
@@ -50,4 +51,10 @@ train_bert(train_iter, model, celoss,
            len(velocity_vocab), devices=devices,
            num_steps=4, lr=0.01)
 
+# %%
+torch.save(model.state_dict(), 'MIDIGPT.pt')
+with open('note_vocab.pkl', 'wb') as f:
+    pickle.dump(note_vocab, f)
+with open('velocity_vocab.pkl', 'wb') as f:
+    pickle.dump(velocity_vocab, f)
 # %%
