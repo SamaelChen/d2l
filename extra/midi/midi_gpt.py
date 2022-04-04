@@ -7,6 +7,7 @@ import torch
 from torch import nn
 import mido
 import logging
+import d2l.torch as d2l
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)s %(levelname)s: %(message)s')
@@ -31,14 +32,6 @@ train_iter = load_data(batch_size, notes, velocities,
                        times, note_vocab, velocity_vocab,
                        max_len)
 # %%
-for (note_token_ids, velocity_token_ids,
-     times, valid_lens, pred_positions,
-     lm_weights, note_lm_labels,
-     velocity_lm_labels, times_lm_labels) in train_iter:
-    print(note_token_ids.shape)
-    break
-
-# %%
 model = GPTModel(len(note_vocab), len(velocity_vocab),
                  num_hiddens=128, norm_shape=[128],
                  ffn_num_input=128, ffn_num_hiddens=256,
@@ -49,12 +42,12 @@ model = GPTModel(len(note_vocab), len(velocity_vocab),
 # %%
 celoss = nn.CrossEntropyLoss()
 mseloss = nn.MSELoss()
-gpu = torch.cuda.is_available()
+devices = d2l.try_all_gpus()
 
 # %%
-get_batch_loss(model, celoss, mseloss, len(note_vocab),
-               len(velocity_vocab), note_token_ids, velocity_token_ids,
-               times, pred_positions, valid_lens, lm_weights,
-               note_lm_labels, velocity_lm_labels, times_lm_labels)
+train_bert(train_iter, model, celoss,
+           mseloss, len(note_vocab),
+           len(velocity_vocab), devices=devices,
+           num_steps=4, lr=0.01)
 
 # %%

@@ -12,6 +12,7 @@ import pandas as pd
 import pickle
 import random
 import logging
+import d2l
 # %%
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)s %(levelname)s: %(message)s')
@@ -281,3 +282,55 @@ def get_batch_loss(net,
     time_lm_l = time_lm_l.sum() / (lm_weights.sum() + 1e-8)
     l = note_lm_l + velocity_lm_l + time_lm_l
     return l, note_lm_l, velocity_lm_l, time_lm_l
+
+
+def train_bert(train_iter, net, celoss, mseloss,
+               note_vocab_size, velocity_vocab_size,
+               devices, num_steps, lr=0.01):
+    net = net.to(devices[0])
+    trainer = torch.optim.Adam(net.parameters(), lr=lr)
+    step, timer = 0, d2l.Timer()
+    animator = d2l.Animator(xlabel='step', ylabel='loss',
+                            xlim=[1, num_steps], legend=['lm_note', 'lm_velocity', 'lm_time'])
+    # 遮蔽语言模型损失的和，下一句预测任务损失的和，句子对的数量，计数
+    metric = d2l.Accumulator(5)
+    num_steps_reached = False
+    while step < num_steps and not num_steps_reached:
+        for (note_token_ids, velocity_token_ids,
+             times, valid_lens, pred_positions,
+             lm_weights, note_lm_labels,
+             velocity_lm_labels, times_lm_labels) in train_iter:
+            note_token_ids = note_token_ids.to(devices[0])
+            velocity_token_ids = velocity_token_ids.to(devices[0])
+            times = times.to(devices[0])
+            valid_lens = valid_lens.to(devices[0])
+            pred_positions = pred_positions.to(devices[0])
+            lm_weights = lm_weights.to(devices[0])
+            note_lm_labels = note_lm_labels.to(devices[0])
+            velocity_lm_labels = velocity_lm_labels.to(devices[0])
+            times_lm_labels = times_lm_labels.to(devices[0])
+            trainer.zero_grad()
+            timer.start()
+            l, note_lm_l, velocity_lm_l, time_lm_l = get_batch_loss(net, celoss, mseloss, note_vocab_size,
+                                                                    velocity_vocab_size, note_token_ids, velocity_token_ids,
+                                                                    times, pred_positions, valid_lens, lm_weights,
+                                                                    note_lm_labels, velocity_lm_labels, times_lm_labels)
+            l.backward()
+            trainer.step()
+            metric.add(note_lm_l, velocity_lm_l,
+                       time_lm_l, note_token_ids.shape[0], 1)
+            timer.stop()
+            animator.add(step + 1,
+                         (metric[0] / metric[4],
+                          metric[1] / metric[4],
+                          metric[2] / metric[4]))
+            step += 1
+            if step == num_steps:
+                num_steps_reached = True
+                break
+
+    print(f'NOTE_LM loss {metric[0] / metric[4]:.3f}, '
+          f'VELOCITY_LM loss {metric[1] / metric[4]:.3f}, '
+          f'TIME_LM loss {metric[2] / metric[4]:.3f}')
+    print(f'{metric[3] / timer.sum():.1f} sentence pairs/sec on '
+          f'{str(devices)}')
