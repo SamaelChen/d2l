@@ -83,6 +83,8 @@ def format_midi(file_dir, dump_dir, dump=True, return_res=True):
             notes.append(note)
             velocities.append(velocity)
             times.append(time)
+    with open(os.path.join(dump_dir, 'raw_mid.pkl'), 'wb') as f:
+        pickle.dump([notes, velocities, times], f)
     seg_mid(notes, velocities, times)
     notes = flat_3d_list(notes)
     velocities = flat_3d_list(velocities)
