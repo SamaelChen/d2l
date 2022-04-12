@@ -99,6 +99,7 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
             tol = 1
         if tol >= toleration:
             break
+    print(beta, gamma, lamb, delta, S, E, I, R, D)
     return beta, gamma, lamb, delta, S, E, I, R, D
 
 
@@ -130,7 +131,7 @@ plt.show()
 # %%
 plt.figure(figsize=(16, 9))
 plt.plot(y_true, label='True Infection', marker='^')
-plt.plot(RES[:len(y_true), 2], label='Infection', marker='.')
+plt.plot(RES[:(len(y_true)+1), 2], label='Infection', marker='.')
 plt.title('SEIR Model')
 plt.legend()
 plt.xlabel('Day')
