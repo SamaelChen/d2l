@@ -66,7 +66,7 @@ def rmse(y_hat, y):
 
 
 def optim(beta, gamma, lamb, N, E, I, T, y_true,
-          delta=0, R=0, D=0, iter=100000000, toleration=100000):
+          delta=0, R=0, D=0, iter=10000000000, toleration=10000000):
     beta_lower = beta[0]
     beta_upper = beta[1]
     gamma_lower = gamma[0]
@@ -99,6 +99,7 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
             tol = 1
         if tol >= toleration:
             break
+    print('current iter {:d} loss: {:.3f}'.format(i+1, min_rmse))
     print(beta, gamma, lamb, delta, S, E, I, R, D)
     return beta, gamma, lamb, delta, S, E, I, R, D
 
