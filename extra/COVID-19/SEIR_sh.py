@@ -66,7 +66,8 @@ def rmse(y_hat, y):
 
 
 def optim(beta, gamma, lamb, N, E, I, T, y_true,
-          delta=0, R=0, D=0, iter=10000000000, toleration=10000000):
+          delta=0, R=0, D=0, iter=10000000000,
+          toleration=10000000):
     beta_lower = beta[0]
     beta_upper = beta[1]
     gamma_lower = gamma[0]
@@ -96,26 +97,40 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
             i+1, loss, min_rmse), end='\r')
         if loss < min_rmse:
             min_rmse = loss
+            best_beta = beta
+            best_gamma = gamma
+            best_lambda = lamb
+            best_delta = delta
+            best_S = S
+            best_E = E
+            best_I = I
+            best_R = R
+            best_D = D
             tol = 1
         if tol >= toleration:
             break
     print('current iter {:d} loss: {:.3f}'.format(i+1, min_rmse))
-    print(beta, gamma, lamb, delta, S, E, I, R, D)
-    return beta, gamma, lamb, delta, S, E, I, R, D
+    print(best_beta, best_gamma, best_lambda, best_delta,
+          best_S, best_E, best_I, best_R, best_D)
+    return(best_beta, best_gamma, best_lambda, best_delta,
+           best_S, best_E, best_I, best_R, best_D)
 
 
 # %%
 y_true = np.array([12, 25, 77, 96, 107, 166, 170, 199,
                    244, 359, 389, 517, 773, 810, 910,
                    1014, 1047, 1131, 1481, 2333, 2947,
-                   3704, 4091, 4484])
+                   3704, 4091, 4484, 5617])
+# %%
 beta, gamma, lamb, delta, S, E, I, R, D = optim([0.0, 1.0], [0.0, 1.0], [0.0, 1.0], N_cn,
-                                                [0, 1000], [12, 12], T=24, y_true=y_true)
+                                                [0, 1000], [12, 12], T=25, y_true=y_true)
 # %%
 T_range = np.arange(0, T + 1)
 INI_cn = (S, E, I, R, D)
 RES = spi.odeint(funcSEIR, INI_cn, T_range, args=(
     N_cn, beta, gamma, delta, lamb))
+# RES = spi.odeint(funcSEIR, INI_cn, T_range, args=(
+#     N_cn, beta_cn, gamma_cn, delta_cn, lambda_cn))
 
 plt.figure(figsize=(16, 9))
 plt.plot(RES[:, 0], label='Susceptible', marker='.')
