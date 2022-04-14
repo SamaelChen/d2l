@@ -163,9 +163,9 @@ plt.show()
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=date_list[::-1], y=y_true,
                          mode='lines+markers',
-                         name='true'))
+                         name='真实'))
 fig.add_trace(go.Scatter(x=date_list[::-1], y=RES[:len(y_true), 2],
                          mode='lines+markers',
-                         name='pred'))
+                         name='预测'))
 fig.show()
 # %%
