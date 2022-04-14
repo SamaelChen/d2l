@@ -1,9 +1,11 @@
 # %%
+import plotly.graph_objects as go
+import plotly as ply
 import scipy.integrate as spi
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from tqdm import tqdm
+import datetime
 
 # %%
 # N为人群总数
@@ -145,13 +147,25 @@ plt.ylabel('Number')
 plt.show()
 
 # %%
+base = datetime.datetime.today()
+date_list = [(base - datetime.timedelta(days=x)).strftime('%Y%m%d')
+             for x in range(len(y_true)+1)]
 plt.figure(figsize=(16, 9))
-plt.plot(y_true, label='True Infection', marker='^')
+plt.plot(date_list[::-1], y_true, label='True Infection', marker='^')
 plt.plot(RES[:(len(y_true)+1), 2], label='Infection', marker='.')
+plt.xticks(rotation=45)
 plt.title('SEIR Model')
 plt.legend()
-plt.xlabel('Day')
 plt.ylabel('Number')
 plt.show()
 
+# %%
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=date_list[::-1], y=y_true,
+                         mode='lines+markers',
+                         name='true'))
+fig.add_trace(go.Scatter(x=date_list[::-1], y=RES[:len(y_true), 2],
+                         mode='lines+markers',
+                         name='pred'))
+fig.show()
 # %%
