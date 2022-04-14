@@ -137,9 +137,9 @@ beta, gamma, lamb, delta, S, E, I, R, D = optim([0.0, 1.0], [0.0, 1.0], [0.0, 1.
                                                 [0, 10000], [509, 509], T=25, y_true=y_true)
 # %%
 T_range = np.arange(0, T + 1)
-INI_cn = (S, E, I, R, D)
-RES = spi.odeint(funcSEIR, INI_cn, T_range, args=(
-    N_cn, beta, gamma, delta, lamb))
+INI = (S, E, I, R, D)
+RES = spi.odeint(funcSEIR, INI, T_range, args=(
+    N_sh, beta, gamma, delta, lamb))
 # RES = spi.odeint(funcSEIR, INI_cn, T_range, args=(
 #     N_cn, beta_cn, gamma_cn, delta_cn, lambda_cn))
 
