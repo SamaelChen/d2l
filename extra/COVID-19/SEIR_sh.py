@@ -122,7 +122,7 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
 y_true = np.array([12, 25, 77, 96, 107, 166, 170, 199,
                    244, 359, 389, 517, 773, 810, 910,
                    1014, 1047, 1131, 1481, 2333, 2947,
-                   3704, 4091, 4484, 5617])
+                   3704, 4091, 4484, 5617, 6574])
 # %%
 beta, gamma, lamb, delta, S, E, I, R, D = optim([0.0, 1.0], [0.0, 1.0], [0.0, 1.0], N_cn,
                                                 [0, 1000], [12, 12], T=25, y_true=y_true)
@@ -147,7 +147,7 @@ plt.ylabel('Number')
 plt.show()
 
 # %%
-base = datetime.datetime.today()
+base = datetime.datetime.today() - datetime.timedelta(days=1)
 date_list = [(base - datetime.timedelta(days=x)).strftime('%Y%m%d')
              for x in range(len(y_true))]
 plt.figure(figsize=(16, 9))
@@ -164,7 +164,7 @@ fig = go.Figure()
 fig.add_trace(go.Scatter(x=date_list[::-1], y=y_true,
                          mode='lines+markers',
                          name='真实'))
-next_day = (base + datetime.timedelta(days=1)).strftime('%Y%m%d')
+next_day = datetime.datetime.today().strftime('%Y%m%d')
 fig.add_trace(go.Scatter(x=date_list[::-1]+[next_day], y=RES[:len(y_true)+1, 2],
                          mode='lines+markers',
                          name='预测'))
