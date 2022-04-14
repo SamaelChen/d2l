@@ -118,6 +118,8 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
            best_S, best_E, best_I, best_R, best_D)
 
 
+# current iter 23537284 loss: 860.85663, min loss: 860.85666
+# 0.9552379090159828 0.5941754578884194 0.9513943627695634 0 692942 97 12 0 0
 # %%
 y_true = np.array([12, 25, 77, 96, 107, 166, 170, 199,
                    244, 359, 389, 517, 773, 810, 910,
@@ -145,7 +147,24 @@ plt.legend()
 plt.xlabel('Day')
 plt.ylabel('Number')
 plt.show()
-
+# %%
+start_date = datetime.datetime(2022, 3, 19)
+date_list = [(start_date+datetime.timedelta(x)).strftime('%Y%m%d')
+             for x in range(T)]
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=date_list, y=RES[:, 0],
+                         mode='lines+markers',
+                         name='Susceptible'))
+fig.add_trace(go.Scatter(x=date_list, y=RES[:, 1],
+                         mode='lines+markers',
+                         name='Exposed'))
+fig.add_trace(go.Scatter(x=date_list, y=RES[:, 1],
+                         mode='lines+markers',
+                         name='Infection'))
+fig.add_trace(go.Scatter(x=date_list, y=RES[:, 3],
+                         mode='lines+markers',
+                         name='Recovery'))
+fig.show()
 # %%
 base = datetime.datetime.today() - datetime.timedelta(days=1)
 date_list = [(base - datetime.timedelta(days=x)).strftime('%Y%m%d')
