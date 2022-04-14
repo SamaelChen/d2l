@@ -83,6 +83,7 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
     T_range = np.arange(0, T)
     min_rmse = float('inf')
     tol = 1
+    best_iter = 1
     for i in range(iter):
         tol += 1
         beta = random.uniform(beta_lower, beta_upper)
@@ -95,8 +96,8 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
         RES = spi.odeint(funcSEIR, INI, T_range, args=(
             N, beta, gamma, delta, lamb))
         loss = rmse(RES[:, 2], y_true)
-        print('current iter {:d} loss: {:.3f}, min loss: {:.3f}'.format(
-            i+1, loss, min_rmse), end='\r')
+        print('best iter: {:d}, current iter {:d} loss: {:.3f}, min loss: {:.3f}'.format(
+            best_iter, i+1, loss, min_rmse), end='\r')
         if loss < min_rmse:
             min_rmse = loss
             best_beta = beta
@@ -108,6 +109,7 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
             best_I = I
             best_R = R
             best_D = D
+            best_iter = i + 1
             tol = 1
         if tol >= toleration:
             break
@@ -118,16 +120,21 @@ def optim(beta, gamma, lamb, N, E, I, T, y_true,
            best_S, best_E, best_I, best_R, best_D)
 
 
-# current iter 23537284 loss: 860.85663, min loss: 860.85666
-# 0.9552379090159828 0.5941754578884194 0.9513943627695634 0 692942 97 12 0 0
+# cn: current iter 23537284 loss: 860.85663, min loss: 860.85666
+# cn: 0.9552379090159828 0.5941754578884194 0.9513943627695634 0 692942 97 12 0 0
 # %%
-y_true = np.array([12, 25, 77, 96, 107, 166, 170, 199,
-                   244, 359, 389, 517, 773, 810, 910,
-                   1014, 1047, 1131, 1481, 2333, 2947,
-                   3704, 4091, 4484, 5617, 6574])
+# y_true = np.array([12, 25, 77, 96, 107, 166, 170, 199,
+#                    244, 359, 389, 517, 773, 810, 910,
+#                    1014, 1047, 1131, 1481, 2333, 2947,
+#                    3704, 4091, 4484, 5617, 6574])
+y_true = np.array([509, 1267,  2833, 3814, 4797, 6406, 8675,
+                   11349, 14849, 19326, 25306, 30958, 35460,
+                   41771, 49997, 59003, 72357, 89434, 109416,
+                   130638, 154262, 179205, 205292, 228644,
+                   254974])
 # %%
-beta, gamma, lamb, delta, S, E, I, R, D = optim([0.0, 1.0], [0.0, 1.0], [0.0, 1.0], N_cn,
-                                                [0, 1000], [12, 12], T=25, y_true=y_true)
+beta, gamma, lamb, delta, S, E, I, R, D = optim([0.0, 1.0], [0.0, 1.0], [0.0, 1.0], N_sh,
+                                                [0, 10000], [509, 509], T=25, y_true=y_true)
 # %%
 T_range = np.arange(0, T + 1)
 INI_cn = (S, E, I, R, D)
