@@ -149,7 +149,7 @@ plt.show()
 # %%
 base = datetime.datetime.today()
 date_list = [(base - datetime.timedelta(days=x)).strftime('%Y%m%d')
-             for x in range(len(y_true)+1)]
+             for x in range(len(y_true))]
 plt.figure(figsize=(16, 9))
 plt.plot(date_list[::-1], y_true, label='True Infection', marker='^')
 plt.plot(RES[:(len(y_true)+1), 2], label='Infection', marker='.')
@@ -164,7 +164,8 @@ fig = go.Figure()
 fig.add_trace(go.Scatter(x=date_list[::-1], y=y_true,
                          mode='lines+markers',
                          name='真实'))
-fig.add_trace(go.Scatter(x=date_list[::-1], y=RES[:len(y_true), 2],
+next_day = (base + datetime.timedelta(days=1)).strftime('%Y%m%d')
+fig.add_trace(go.Scatter(x=date_list[::-1]+[next_day], y=RES[:len(y_true)+1, 2],
                          mode='lines+markers',
                          name='预测'))
 fig.show()
