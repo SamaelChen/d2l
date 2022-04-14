@@ -158,7 +158,7 @@ fig.add_trace(go.Scatter(x=date_list, y=RES[:, 0],
 fig.add_trace(go.Scatter(x=date_list, y=RES[:, 1],
                          mode='lines+markers',
                          name='Exposed'))
-fig.add_trace(go.Scatter(x=date_list, y=RES[:, 1],
+fig.add_trace(go.Scatter(x=date_list, y=RES[:, 2],
                          mode='lines+markers',
                          name='Infection'))
 fig.add_trace(go.Scatter(x=date_list, y=RES[:, 3],
