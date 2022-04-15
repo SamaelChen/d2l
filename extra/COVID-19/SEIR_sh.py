@@ -131,7 +131,7 @@ y_true = np.array([509, 1267,  2833, 3814, 4797, 6406, 8675,
                    11349, 14849, 19326, 25306, 30958, 35460,
                    41771, 49997, 59003, 72357, 89434, 109416,
                    130638, 154262, 179205, 205292, 228644,
-                   254974, 282693])
+                   254974, 282693, 305765])
 # %%
 beta, gamma, lamb, delta, S, E, I, R, D = optim([0.5, 1.0], [0.2, 1.0], [0.5, 1.0], N_sh,
                                                 [5000, 15000], [509, 509], T=len(y_true), y_true=y_true)
@@ -173,11 +173,11 @@ fig.add_trace(go.Scatter(x=date_list, y=RES[:, 3],
                          name='Recovery'))
 fig.show()
 # %%
-base = datetime.datetime.today() - datetime.timedelta(days=1)
-date_list = [(base - datetime.timedelta(days=x)).strftime('%Y%m%d')
+start_date = datetime.datetime(2022, 3, 19)
+date_list = [(start_date+datetime.timedelta(x)).strftime('%Y%m%d')
              for x in range(len(y_true))]
 plt.figure(figsize=(16, 9))
-plt.plot(date_list[::-1], y_true, label='True Infection', marker='^')
+plt.plot(date_list, y_true, label='True Infection', marker='^')
 plt.plot(RES[:(len(y_true)+1), 2], label='Infection', marker='.')
 plt.xticks(rotation=45)
 plt.title('SEIR Model')
@@ -187,11 +187,11 @@ plt.show()
 
 # %%
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=date_list[::-1], y=y_true,
+fig.add_trace(go.Scatter(x=date_list, y=y_true,
                          mode='lines+markers',
                          name='真实'))
 next_day = datetime.datetime.today().strftime('%Y%m%d')
-fig.add_trace(go.Scatter(x=date_list[::-1]+[next_day], y=RES[:len(y_true)+1, 2],
+fig.add_trace(go.Scatter(x=date_list+[next_day], y=RES[:len(y_true)+1, 2],
                          mode='lines+markers',
                          name='预测'))
 fig.show()
