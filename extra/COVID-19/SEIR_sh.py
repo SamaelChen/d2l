@@ -190,7 +190,8 @@ fig = go.Figure()
 fig.add_trace(go.Scatter(x=date_list, y=y_true,
                          mode='lines+markers',
                          name='真实'))
-next_day = datetime.datetime.today().strftime('%Y%m%d')
+next_day = (datetime.datetime.strptime(
+    date_list[-1], '%Y%m%d')+datetime.timedelta(1)).strftime('%Y%m%d')
 fig.add_trace(go.Scatter(x=date_list+[next_day], y=RES[:len(y_true)+1, 2],
                          mode='lines+markers',
                          name='预测'))
