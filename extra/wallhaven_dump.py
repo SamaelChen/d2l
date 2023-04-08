@@ -8,9 +8,9 @@ wallhaven = Wallhaven(api_key='2RCqfqJ3p6MPRtIOLoKkfUxCHPFtprTI')
 wallhaven.params["categories"] = "001"
 wallhaven.params["purity"] = '001'
 wallhaven.params["sorting"] = "toplist"
-wallhaven.params["topRange"] = "1y"
+wallhaven.params["topRange"] = "6M"
 
-for page in range(1, 381):
+for page in range(1, 185):
     wallhaven.params["page"] = page
     results = wallhaven.search()
     for wallpaper in tqdm(results.data):
